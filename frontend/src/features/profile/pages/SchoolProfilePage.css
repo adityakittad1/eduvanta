@@ -1,0 +1,329 @@
+.school-profile-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  animation: fadeIn var(--transition-normal);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hero Section */
+.sp-hero {
+  position: relative;
+  background: var(--color-neutral-0);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-neutral-200);
+}
+
+.sp-hero-bg {
+  height: 160px;
+  background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-800) 100%);
+}
+
+.sp-hero-content {
+  padding: 0 var(--space-8) var(--space-6);
+  position: relative;
+}
+
+.sp-hero-header {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-6);
+  margin-top: -64px;
+}
+
+.sp-logo-container {
+  width: 128px;
+  height: 128px;
+  border-radius: var(--radius-lg);
+  background: var(--color-neutral-0);
+  padding: var(--space-2);
+  box-shadow: var(--shadow-md);
+  flex-shrink: 0;
+}
+
+.sp-logo, .sp-logo-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+}
+
+.sp-logo-placeholder {
+  background: var(--color-primary-50);
+  color: var(--color-primary-400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sp-title-group {
+  flex: 1;
+  padding-bottom: var(--space-2);
+}
+
+.sp-school-name {
+  font-size: 2rem;
+  font-weight: var(--font-bold);
+  color: var(--color-neutral-900);
+  margin-bottom: var(--space-1);
+}
+
+.sp-principal-name {
+  font-size: var(--text-md);
+  color: var(--color-neutral-600);
+}
+
+.sp-hero-actions {
+  padding-bottom: var(--space-2);
+}
+
+/* Grid Layout */
+.sp-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+@media (max-width: 992px) {
+  .sp-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sp-main-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.sp-side-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* Sections */
+.sp-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sp-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sp-section-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-neutral-900);
+}
+
+.sp-card {
+  background: var(--color-neutral-0);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  border: 1px solid var(--color-neutral-200);
+  box-shadow: var(--shadow-sm);
+}
+
+.sp-description {
+  font-size: var(--text-md);
+  line-height: 1.7;
+  color: var(--color-neutral-700);
+}
+
+/* Facilities */
+.sp-facility-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--space-4);
+}
+
+.sp-facility-card {
+  background: var(--color-neutral-0);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  gap: var(--space-3);
+  position: relative;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.sp-facility-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.sp-facility-icon {
+  color: var(--color-success-500);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.sp-facility-info h3 {
+  font-size: var(--text-md);
+  font-weight: var(--font-medium);
+  color: var(--color-neutral-900);
+  margin-bottom: var(--space-1);
+}
+
+.sp-facility-info p {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-500);
+  line-height: 1.4;
+}
+
+/* Contact Info */
+.sp-contact-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sp-contact-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  font-size: var(--text-md);
+  color: var(--color-neutral-700);
+  line-height: 1.5;
+}
+
+/* Achievements */
+.sp-achievement-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sp-achievement-item {
+  display: flex;
+  gap: var(--space-3);
+  position: relative;
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.sp-achievement-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.sp-achievement-icon {
+  color: var(--color-warning-500);
+  flex-shrink: 0;
+  background: var(--color-warning-50);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sp-achievement-info h4 {
+  font-size: var(--text-md);
+  font-weight: var(--font-medium);
+  color: var(--color-neutral-900);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sp-year-badge {
+  font-size: var(--text-xs);
+  background: var(--color-neutral-100);
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  color: var(--color-neutral-600);
+}
+
+.sp-achievement-info p {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-500);
+  margin-top: var(--space-1);
+}
+
+/* Stats Card */
+.sp-stats-card {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-6);
+  justify-content: space-around;
+  text-align: center;
+}
+
+.sp-stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sp-stat-value {
+  font-size: 2rem;
+  font-weight: var(--font-bold);
+  color: var(--color-primary-600);
+}
+
+.sp-stat-label {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Form Styles inside Modals */
+.sp-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sp-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+/* Delete Buttons */
+.sp-delete-btn {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  background: none;
+  border: none;
+  color: var(--color-neutral-400);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  opacity: 0;
+}
+
+.sp-facility-card:hover .sp-delete-btn,
+.sp-achievement-item:hover .sp-delete-btn {
+  opacity: 1;
+}
+
+.sp-delete-btn:hover {
+  background: var(--color-danger-50);
+  color: var(--color-danger-600);
+}

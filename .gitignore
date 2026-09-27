@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+.npm
+
+# Build output
+dist/
+build/
+.next/
+
+# Environment variables — NEVER commit
+.env
+.env.local
+.env.production
+.env.staging
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Uploads (local file storage)
+uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# TypeScript
+*.tsbuildinfo
+
+# Prisma
+# (migrations are committed, but generated client is not)
+backend/node_modules/
+frontend/node_modules/
+
+# Test coverage
+coverage/
+
+# Docker
+docker-volumes/

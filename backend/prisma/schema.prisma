@@ -1,0 +1,678 @@
+// ============================================================
+// ZP School ERP — Prisma Schema
+// Source of truth for the database structure.
+// Run: npx prisma migrate dev --name <migration-name>
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ──────────────────────────────────────────────────
+
+enum Role {
+  SUPER_ADMIN
+  PRINCIPAL
+  TEACHER
+  STUDENT
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  HOLIDAY
+}
+
+enum AssessmentType {
+  UNIT_TEST
+  HALF_YEARLY
+  ANNUAL
+  PRACTICAL
+  PROJECT
+  OTHER
+}
+
+enum NoticeTarget {
+  ALL
+  TEACHERS
+  STUDENTS
+  CLASS
+}
+
+enum NoticeStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum PublicVisibility {
+  INTERNAL
+  PUBLIC
+}
+
+enum TcStatus {
+  REQUESTED
+  APPROVED
+  ISSUED
+  CANCELLED
+}
+
+enum TcTemplateStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum ResourceType {
+  PDF
+  IMAGE
+  VIDEO
+  DOCUMENT
+  OTHER
+}
+
+enum GalleryCategory {
+  INFRASTRUCTURE
+  EVENTS
+  ACTIVITIES
+  SPORTS
+  ACHIEVEMENTS
+  CULTURAL
+  EDUCATIONAL
+}
+
+enum WarningType {
+  LOW_ATTENDANCE
+  LOW_ACADEMIC_PERFORMANCE
+  DECLINING_PERFORMANCE
+  LOW_QUIZ_SCORES
+}
+
+// ─── Core Entities ──────────────────────────────────────────
+
+model School {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String?  @unique  // URL-safe identifier e.g. "zp-school-wardha"
+  logoUrl          String?  @map("logo_url")
+  address          String?
+  contactPhone     String?  @map("contact_phone")
+  contactEmail     String?  @map("contact_email")
+  principalName    String?  @map("principal_name")
+  description      String?
+  tagline          String?  // Public-facing school tagline
+  establishedYear  Int?     @map("established_year")
+  isActive         Boolean  @default(true) @map("is_active")
+  isPublicEnabled  Boolean  @default(true) @map("is_public_enabled")  // Whether public website is live
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  users                  User[]
+  students               Student[]
+  teachers               Teacher[]
+  classes                Class[]
+  subjects               Subject[]
+  attendanceRecords      AttendanceRecord[]
+  assessments            Assessment[]
+  academicRecords        AcademicRecord[]
+  quizDefinitions        QuizDefinition[]
+  quizAttempts           QuizAttempt[]
+  learningResources      LearningResource[]
+  notices                Notice[]
+  transferCertificates   TransferCertificate[]
+  galleryItems           GalleryItem[]
+  earlyWarningFlags      EarlyWarningFlag[]
+  auditLogs              AuditLog[]
+  facilities             SchoolFacility[]
+  achievements           SchoolAchievement[]
+  teacherClassSubjects   TeacherClassSubject[]
+  events                 SchoolEvent[]
+  tcTemplates            TcTemplate[]
+
+  @@map("schools")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?  // Display name (full name) — used for greetings, profiles
+  passwordHash String   @map("password_hash")
+  role         Role
+  schoolId     String?  @map("school_id")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  school         School?        @relation(fields: [schoolId], references: [id])
+  refreshTokens  RefreshToken[]
+  student        Student?       // If role is STUDENT
+  teacher        Teacher?       // If role is TEACHER
+  createdNotices Notice[]       @relation("NoticeCreator")
+  approvedTcs    TransferCertificate[] @relation("TcApprover")
+  uploadedGalleryItems GalleryItem[]
+  uploadedResources    LearningResource[]
+  auditLogs      AuditLog[]
+  createdTcTemplates TcTemplate[] @relation("TcTemplateCreator")
+
+  @@index([schoolId])
+  @@index([email])
+  @@map("users")
+}
+
+model RefreshToken {
+  id         String    @id @default(cuid())
+  userId     String    @map("user_id")
+  tokenHash  String    @map("token_hash")
+  expiresAt  DateTime  @map("expires_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  revokedAt  DateTime? @map("revoked_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// ─── School Profile ─────────────────────────────────────────
+
+model SchoolFacility {
+  id          String  @id @default(cuid())
+  schoolId    String  @map("school_id")
+  name        String
+  description String?
+  icon        String? // Optional icon name for display
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([schoolId])
+  @@map("school_facilities")
+}
+
+model SchoolAchievement {
+  id          String  @id @default(cuid())
+  schoolId    String  @map("school_id")
+  title       String
+  description String?
+  year        Int?
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([schoolId])
+  @@map("school_achievements")
+}
+
+model SchoolEvent {
+  id          String   @id @default(cuid())
+  schoolId    String   @map("school_id")
+  title       String
+  description String?
+  eventDate   DateTime @map("event_date")
+  isPublic    Boolean  @default(true) @map("is_public")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@index([schoolId])
+  @@index([eventDate])
+  @@map("school_events")
+}
+
+// ─── People ─────────────────────────────────────────────────
+
+model Student {
+  id              String    @id @default(cuid())
+  schoolId        String    @map("school_id")
+  userId          String?   @unique @map("user_id")  // Optional: for student login
+  admissionNumber String    @map("admission_number")
+  firstName       String    @map("first_name")
+  lastName        String    @map("last_name")
+  dateOfBirth     DateTime? @map("date_of_birth")
+  gender          Gender?
+  address         String?
+  guardianName    String?   @map("guardian_name")
+  guardianPhone   String?   @map("guardian_phone")
+  classId         String?   @map("class_id")
+  enrollmentDate  DateTime  @default(now()) @map("enrollment_date")
+  academicYear    String    @map("academic_year")
+  isActive        Boolean   @default(true) @map("is_active")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  school            School               @relation(fields: [schoolId], references: [id])
+  user              User?                @relation(fields: [userId], references: [id])
+  class             Class?               @relation(fields: [classId], references: [id])
+  attendanceRecords AttendanceRecord[]
+  academicRecords   AcademicRecord[]
+  quizAttempts      QuizAttempt[]
+  transferCertificates TransferCertificate[]
+  earlyWarningFlags EarlyWarningFlag[]
+
+  @@unique([schoolId, admissionNumber])
+  @@index([schoolId])
+  @@index([classId])
+  @@map("students")
+}
+
+model Teacher {
+  id           String   @id @default(cuid())
+  schoolId     String   @map("school_id")
+  userId       String   @unique @map("user_id")
+  employeeId   String?  @map("employee_id")
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  qualification String?
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  school               School                @relation(fields: [schoolId], references: [id])
+  user                 User                  @relation(fields: [userId], references: [id])
+  teacherClassSubjects TeacherClassSubject[]
+  markedAttendance     AttendanceRecord[]
+  quizDefinitions      QuizDefinition[]
+  learningResources    LearningResource[]
+
+  @@index([schoolId])
+  @@map("teachers")
+}
+
+// ─── Academic Structure ─────────────────────────────────────
+
+model Class {
+  id           String   @id @default(cuid())
+  schoolId     String   @map("school_id")
+  name         String   // e.g., "Class 5"
+  division     String?  // e.g., "A"
+  academicYear String   @map("academic_year")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  school               School                @relation(fields: [schoolId], references: [id])
+  students             Student[]
+  subjects             Subject[]
+  teacherClassSubjects TeacherClassSubject[]
+  attendanceRecords    AttendanceRecord[]
+  assessments          Assessment[]
+  quizDefinitions      QuizDefinition[]
+  learningResources    LearningResource[]
+  notices              Notice[]
+
+  @@unique([schoolId, name, division, academicYear])
+  @@index([schoolId])
+  @@map("classes")
+}
+
+model Subject {
+  id       String  @id @default(cuid())
+  schoolId String  @map("school_id")
+  classId  String  @map("class_id")
+  name     String  // e.g., "Mathematics"
+  code     String? // e.g., "MATH"
+  isActive Boolean @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  school               School                @relation(fields: [schoolId], references: [id])
+  class                Class                 @relation(fields: [classId], references: [id])
+  teacherClassSubjects TeacherClassSubject[]
+  assessments          Assessment[]
+  quizDefinitions      QuizDefinition[]
+  learningResources    LearningResource[]
+
+  @@unique([schoolId, classId, name])
+  @@index([schoolId])
+  @@index([classId])
+  @@map("subjects")
+}
+
+model TeacherClassSubject {
+  id           String   @id @default(cuid())
+  schoolId     String   @map("school_id")
+  teacherId    String   @map("teacher_id")
+  classId      String   @map("class_id")
+  subjectId    String   @map("subject_id")
+  academicYear String   @map("academic_year")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  school   School  @relation(fields: [schoolId], references: [id])
+  teacher  Teacher @relation(fields: [teacherId], references: [id])
+  class    Class   @relation(fields: [classId], references: [id])
+  subject  Subject @relation(fields: [subjectId], references: [id])
+
+  @@unique([teacherId, classId, subjectId, academicYear])
+  @@index([schoolId])
+  @@index([teacherId])
+  @@map("teacher_class_subjects")
+}
+
+// ─── Attendance ──────────────────────────────────────────────
+
+model AttendanceRecord {
+  id                String           @id @default(cuid())
+  schoolId          String           @map("school_id")
+  classId           String           @map("class_id")
+  studentId         String           @map("student_id")
+  date              DateTime         @db.Date
+  status            AttendanceStatus
+  markedByTeacherId String?          @map("marked_by_teacher_id")
+  createdAt         DateTime         @default(now()) @map("created_at")
+
+  school    School   @relation(fields: [schoolId], references: [id])
+  class     Class    @relation(fields: [classId], references: [id])
+  student   Student  @relation(fields: [studentId], references: [id])
+  teacher   Teacher? @relation(fields: [markedByTeacherId], references: [id])
+
+  @@unique([schoolId, classId, studentId, date])
+  @@index([schoolId])
+  @@index([classId])
+  @@index([studentId])
+  @@index([date])
+  @@map("attendance_records")
+}
+
+// ─── Academic Performance ────────────────────────────────────
+
+model Assessment {
+  id            String         @id @default(cuid())
+  schoolId      String         @map("school_id")
+  classId       String         @map("class_id")
+  subjectId     String         @map("subject_id")
+  name          String         // e.g., "Unit Test 1"
+  type          AssessmentType
+  maxMarks      Float          @map("max_marks")
+  conductedDate DateTime?      @map("conducted_date") @db.Date
+  academicYear  String         @map("academic_year")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  school          School          @relation(fields: [schoolId], references: [id])
+  class           Class           @relation(fields: [classId], references: [id])
+  subject         Subject         @relation(fields: [subjectId], references: [id])
+  academicRecords AcademicRecord[]
+
+  @@index([schoolId])
+  @@index([classId])
+  @@index([subjectId])
+  @@map("assessments")
+}
+
+model AcademicRecord {
+  id              String   @id @default(cuid())
+  schoolId        String   @map("school_id")
+  studentId       String   @map("student_id")
+  assessmentId    String   @map("assessment_id")
+  marksObtained   Float    @map("marks_obtained")
+  remarks         String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  school     School     @relation(fields: [schoolId], references: [id])
+  student    Student    @relation(fields: [studentId], references: [id])
+  assessment Assessment @relation(fields: [assessmentId], references: [id])
+
+  @@unique([studentId, assessmentId])
+  @@index([schoolId])
+  @@index([studentId])
+  @@index([assessmentId])
+  @@map("academic_records")
+}
+
+// ─── Quizzes ─────────────────────────────────────────────────
+
+model QuizDefinition {
+  id                String   @id @default(cuid())
+  schoolId          String   @map("school_id")
+  classId           String   @map("class_id")
+  subjectId         String   @map("subject_id")
+  title             String
+  topic             String?
+  createdByTeacherId String  @map("created_by_teacher_id")
+  isPublished       Boolean  @default(false) @map("is_published")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  school    School         @relation(fields: [schoolId], references: [id])
+  class     Class          @relation(fields: [classId], references: [id])
+  subject   Subject        @relation(fields: [subjectId], references: [id])
+  teacher   Teacher        @relation(fields: [createdByTeacherId], references: [id])
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+
+  @@index([schoolId])
+  @@index([classId])
+  @@map("quiz_definitions")
+}
+
+model QuizQuestion {
+  id            String  @id @default(cuid())
+  quizId        String  @map("quiz_id")
+  questionText  String  @map("question_text")
+  optionA       String  @map("option_a")
+  optionB       String  @map("option_b")
+  optionC       String? @map("option_c")
+  optionD       String? @map("option_d")
+  correctOption String  @map("correct_option") // "A", "B", "C", or "D"
+  order         Int     @default(0)
+
+  quiz QuizDefinition @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([quizId])
+  @@map("quiz_questions")
+}
+
+model QuizAttempt {
+  id          String   @id @default(cuid())
+  schoolId    String   @map("school_id")
+  quizId      String   @map("quiz_id")
+  studentId   String   @map("student_id")
+  score       Float
+  maxScore    Float    @map("max_score")
+  completedAt DateTime @default(now()) @map("completed_at")
+
+  school  School         @relation(fields: [schoolId], references: [id])
+  quiz    QuizDefinition @relation(fields: [quizId], references: [id])
+  student Student        @relation(fields: [studentId], references: [id])
+
+  @@unique([quizId, studentId])
+  @@index([schoolId])
+  @@index([studentId])
+  @@map("quiz_attempts")
+}
+
+// ─── Learning Resources ──────────────────────────────────────
+
+model LearningResource {
+  id                  String       @id @default(cuid())
+  schoolId            String       @map("school_id")
+  classId             String       @map("class_id")
+  subjectId           String       @map("subject_id")
+  topic               String?
+  title               String
+  description         String?
+  fileUrl             String       @map("file_url")
+  fileType            ResourceType @map("file_type")
+  fileSizeBytes       Int?         @map("file_size_bytes")
+  uploadedByTeacherId String       @map("uploaded_by_teacher_id")
+  uploadedByUserId    String       @map("uploaded_by_user_id")
+  createdAt           DateTime     @default(now()) @map("created_at")
+
+  school   School  @relation(fields: [schoolId], references: [id])
+  class    Class   @relation(fields: [classId], references: [id])
+  subject  Subject @relation(fields: [subjectId], references: [id])
+  teacher  Teacher @relation(fields: [uploadedByTeacherId], references: [id])
+  uploader User    @relation(fields: [uploadedByUserId], references: [id])
+
+  @@index([schoolId])
+  @@index([classId])
+  @@index([subjectId])
+  @@map("learning_resources")
+}
+
+// ─── Notices ─────────────────────────────────────────────────
+
+model Notice {
+  id              String            @id @default(cuid())
+  schoolId        String            @map("school_id")
+  title           String
+  content         String
+  targetAudience  NoticeTarget      @map("target_audience")
+  targetClassId   String?           @map("target_class_id")
+  status          NoticeStatus      @default(DRAFT)
+  visibility      PublicVisibility  @default(INTERNAL) // INTERNAL or PUBLIC
+  publishedAt     DateTime?         @map("published_at")
+  createdByUserId String            @map("created_by_user_id")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  school       School  @relation(fields: [schoolId], references: [id])
+  targetClass  Class?  @relation(fields: [targetClassId], references: [id])
+  createdBy    User    @relation("NoticeCreator", fields: [createdByUserId], references: [id])
+
+  @@index([schoolId])
+  @@index([status])
+  @@index([visibility])
+  @@map("notices")
+}
+
+// ─── Transfer Certificates ───────────────────────────────────
+
+model TransferCertificate {
+  id                String   @id @default(cuid())
+  schoolId          String   @map("school_id")
+  studentId         String   @map("student_id")
+  templateId        String?  @map("template_id")
+  templateVersion   Int?     @map("template_version")
+  tcNumber          String   @unique @map("tc_number")
+  reason            String?
+  requestedDate     DateTime @default(now()) @map("requested_date")
+  approvedDate      DateTime? @map("approved_date")
+  issuedDate        DateTime? @map("issued_date")
+  status            TcStatus  @default(REQUESTED)
+  approvedByUserId  String?   @map("approved_by_user_id")
+  fileUrl           String?   @map("file_url")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  school     School   @relation(fields: [schoolId], references: [id])
+  student    Student  @relation(fields: [studentId], references: [id])
+  template   TcTemplate? @relation(fields: [templateId], references: [id])
+  approvedBy User?    @relation("TcApprover", fields: [approvedByUserId], references: [id])
+
+  @@index([schoolId])
+  @@index([studentId])
+  @@map("transfer_certificates")
+}
+
+// ─── TC Templates ────────────────────────────────────────────
+
+model TcTemplate {
+  id           String            @id @default(cuid())
+  schoolId     String            @map("school_id")
+  name         String
+  version      Int               @default(1)
+  fileUrl      String            @map("file_url")
+  status       TcTemplateStatus  @default(ARCHIVED)
+  createdBy    String            @map("created_by_user_id")
+  activatedAt  DateTime?         @map("activated_at")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  school       School            @relation(fields: [schoolId], references: [id])
+  creator      User              @relation("TcTemplateCreator", fields: [createdBy], references: [id])
+  fields       TcTemplateField[]
+  certificates TransferCertificate[]
+
+  @@index([schoolId])
+  @@index([status])
+  @@map("tc_templates")
+}
+
+model TcTemplateField {
+  id           String     @id @default(cuid())
+  templateId   String     @map("template_id")
+  fieldName    String     @map("field_name")
+  placeholder  String
+  required     Boolean    @default(true)
+
+  template     TcTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
+  @@map("tc_template_fields")
+}
+
+// ─── Gallery ─────────────────────────────────────────────────
+
+model GalleryItem {
+  id               String          @id @default(cuid())
+  schoolId         String          @map("school_id")
+  title            String
+  description      String?
+  category         GalleryCategory
+  fileUrl          String          @map("file_url")
+  isPublic         Boolean         @default(false) @map("is_public")  // Visible on public website
+  uploadedByUserId String          @map("uploaded_by_user_id")
+  createdAt        DateTime        @default(now()) @map("created_at")
+
+  school     School @relation(fields: [schoolId], references: [id])
+  uploadedBy User   @relation(fields: [uploadedByUserId], references: [id])
+
+  @@index([schoolId])
+  @@index([category])
+  @@index([isPublic])
+  @@map("gallery_items")
+}
+
+// ─── Early Warning ───────────────────────────────────────────
+
+model EarlyWarningFlag {
+  id          String      @id @default(cuid())
+  schoolId    String      @map("school_id")
+  studentId   String      @map("student_id")
+  flagType    WarningType @map("flag_type")
+  details     Json        // { threshold: 75, actual: 62, subject?: "Mathematics" }
+  isResolved  Boolean     @default(false) @map("is_resolved")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  resolvedAt  DateTime?   @map("resolved_at")
+
+  school  School  @relation(fields: [schoolId], references: [id])
+  student Student @relation(fields: [studentId], references: [id])
+
+  @@index([schoolId])
+  @@index([studentId])
+  @@map("early_warning_flags")
+}
+
+// ─── Audit Log ───────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  schoolId   String?  @map("school_id")
+  userId     String   @map("user_id")
+  action     String   // e.g., "TC_ISSUED", "ROLE_CHANGED", "SCHOOL_CREATED"
+  entityType String?  @map("entity_type")
+  entityId   String?  @map("entity_id")
+  details    Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  school School? @relation(fields: [schoolId], references: [id])
+  user   User    @relation(fields: [userId], references: [id])
+
+  @@index([schoolId])
+  @@index([userId])
+  @@index([action])
+  @@map("audit_logs")
+}

@@ -1,0 +1,81 @@
+version: '3.9'
+
+# Full production-like stack
+# Usage: docker-compose up --build
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: zp_erp_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-zpschoolerp}
+      POSTGRES_USER: ${POSTGRES_USER:-zpuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-zppassword}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-zpuser} -d ${POSTGRES_DB:-zpschoolerp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - erp_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../docker/backend.Dockerfile
+    container_name: zp_erp_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-zpuser}:${POSTGRES_PASSWORD:-zppassword}@postgres:5432/${POSTGRES_DB:-zpschoolerp}
+      PORT: 3000
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      FILE_UPLOAD_DIR: /app/uploads
+      LOG_LEVEL: info
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - erp_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend.Dockerfile
+    container_name: zp_erp_frontend
+    restart: unless-stopped
+    networks:
+      - erp_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: zp_erp_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - uploads_data:/app/uploads:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - erp_network
+
+volumes:
+  postgres_data:
+  uploads_data:
+
+networks:
+  erp_network:
+    driver: bridge

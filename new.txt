@@ -1,0 +1,740 @@
+============================================================
+FINAL PRODUCT REQUIREMENT — MULTI-SCHOOL PUBLIC WEBSITE SYSTEM
+============================================================
+
+IMPORTANT:
+
+The School ERP must NOT be designed as only a private administrative dashboard.
+
+The final product must contain TWO CONNECTED EXPERIENCES:
+
+1. INTERNAL SCHOOL ERP
+2. PUBLIC SCHOOL WEBSITE / SCHOOL PORTAL
+
+These two experiences must be part of the SAME platform and share the appropriate school-level data.
+
+The system must be architected as a MULTI-SCHOOL PLATFORM.
+
+The initial deployment will support 6 Zilla Parishad schools.
+
+DO NOT create six separate hard-coded websites.
+
+DO NOT duplicate the frontend six times.
+
+Build ONE reusable public-school website system that dynamically generates the public website for each school based on that school's configuration and content.
+
+============================================================
+PUBLIC SCHOOL WEBSITE
+============================================================
+
+Every school registered in the ERP should automatically receive its own public-facing website.
+
+Example:
+
+School A
+→ its own public website
+
+School B
+→ its own public website
+
+School C
+→ its own public website
+
+All of them must run from the SAME application and reusable components.
+
+The website content must be dynamically loaded using the school's identity/configuration.
+
+The platform should support a school-specific route such as:
+
+/school/{school-slug}
+
+or an equivalent clean routing architecture.
+
+The exact routing approach may be chosen based on the existing architecture.
+
+============================================================
+NO MANUAL DEVELOPMENT FOR EACH SCHOOL
+============================================================
+
+This is a critical requirement.
+
+When a new school is created by SUPER_ADMIN:
+
+1. Create school record
+2. Generate unique school slug/identifier
+3. Create school profile
+4. Allow school logo upload
+5. Allow school information configuration
+6. Enable public website automatically
+7. Make the school publicly accessible through its generated route
+
+The developer must NOT need to create another React page manually for the new school.
+
+The system should be data-driven.
+
+Adding School #7 should use the same architecture as School #1.
+
+============================================================
+PUBLIC WEBSITE CONTENT
+============================================================
+
+The public website should support configurable sections such as:
+
+HOME
+
+ABOUT SCHOOL
+
+FACILITIES
+
+ACHIEVEMENTS
+
+SCHOOL ACTIVITIES
+
+EVENTS
+
+GALLERY
+
+ANNOUNCEMENTS
+
+CONTACT
+
+The exact navigation can be refined according to the design system.
+
+The school should be able to manage appropriate public content from the ERP.
+
+============================================================
+SCHOOL BRANDING
+============================================================
+
+Each school must be able to configure:
+
+- School logo
+- School name
+- School tagline if applicable
+- Address
+- Contact information
+- Principal name
+- School description
+- Facilities
+- Achievements
+- Gallery
+- Public announcements
+- Events
+
+The public website should automatically reflect the school's information.
+
+For example:
+
+School A uploads:
+
+Logo A
+Photos A
+Facilities A
+Achievements A
+
+Its public website displays School A's content.
+
+School B uploads:
+
+Logo B
+Photos B
+Facilities B
+Achievements B
+
+Its public website displays School B's content.
+
+There must be NO cross-school content leakage.
+
+============================================================
+SCHOOL WEBSITE CUSTOMIZATION
+============================================================
+
+The school should have controlled customization.
+
+Allow configuration of:
+
+- logo
+- school information
+- images
+- facilities
+- achievements
+- announcements
+- events
+- selected branding elements where appropriate
+
+However:
+
+DO NOT allow arbitrary custom CSS or JavaScript from school administrators.
+
+The global design system must remain consistent.
+
+The platform should look like ONE professional product while allowing each school to have its own identity.
+
+============================================================
+PUBLIC VS PRIVATE DATA
+============================================================
+
+This separation is CRITICAL.
+
+PUBLIC WEBSITE DATA:
+
+- school name
+- school logo
+- school description
+- school address
+- contact information
+- facilities
+- achievements
+- gallery
+- public events
+- approved public announcements
+
+PRIVATE ERP DATA:
+
+- student attendance
+- student marks
+- student academic records
+- student personal information
+- student quiz results
+- student learning progress
+- early warning indicators
+- teacher private information
+- internal reports
+- TC records
+- administrative data
+
+PRIVATE ERP DATA MUST NEVER BE EXPOSED THROUGH THE PUBLIC WEBSITE.
+
+============================================================
+CONTENT VISIBILITY MODEL
+============================================================
+
+Important content should support a visibility concept where appropriate.
+
+For example:
+
+Announcement:
+
+DRAFT
+PRIVATE
+PUBLISHED INTERNALLY
+PUBLIC
+
+OR use a simpler visibility model if the architecture already defines one.
+
+The important requirement is:
+
+A principal or authorized user should be able to decide whether appropriate content is visible publicly.
+
+Do not automatically publish sensitive/internal information.
+
+============================================================
+ERP ↔ PUBLIC WEBSITE CONNECTION
+============================================================
+
+The internal ERP and public website should share appropriate data.
+
+Example:
+
+Principal creates announcement:
+
+"Annual Sports Day — 15 October"
+
+The principal can choose:
+
+[ ] Internal ERP only
+[ ] Public website
+[ ] Both
+
+If public visibility is enabled:
+
+The announcement appears on the school's public website automatically.
+
+Students can also see it inside the ERP if internal visibility is enabled.
+
+This eliminates duplicate data entry.
+
+============================================================
+PUBLIC WEBSITE HOME PAGE
+============================================================
+
+Create a polished public school homepage.
+
+Suggested structure:
+
+------------------------------------------------
+HEADER
+------------------------------------------------
+
+School Logo
+School Name
+
+Home
+About
+Facilities
+Achievements
+Gallery
+Announcements
+Contact
+
+------------------------------------------------
+HERO
+------------------------------------------------
+
+School identity
+
+Welcome message
+
+School photograph / appropriate visual
+
+Primary CTA where appropriate
+
+------------------------------------------------
+ABOUT
+------------------------------------------------
+
+Short school introduction
+
+------------------------------------------------
+KEY INFORMATION
+------------------------------------------------
+
+Students
+Teachers
+Facilities
+Established year
+
+Only display statistics that are explicitly configured and safe to publish.
+
+Do NOT fabricate numbers.
+
+------------------------------------------------
+FACILITIES
+------------------------------------------------
+
+Facility cards
+
+------------------------------------------------
+ACHIEVEMENTS
+------------------------------------------------
+
+Achievement highlights
+
+------------------------------------------------
+SCHOOL ACTIVITIES
+------------------------------------------------
+
+Events / activities
+
+------------------------------------------------
+GALLERY
+------------------------------------------------
+
+School photos
+
+------------------------------------------------
+LATEST ANNOUNCEMENTS
+------------------------------------------------
+
+Public announcements
+
+------------------------------------------------
+CONTACT
+------------------------------------------------
+
+Address
+Contact information
+Map integration only if actually implemented
+
+------------------------------------------------
+FOOTER
+------------------------------------------------
+
+School information
+Platform attribution if appropriate
+
+------------------------------------------------
+
+The exact design should follow DESIGN_SYSTEM.md.
+
+============================================================
+PUBLIC WEBSITE DESIGN QUALITY
+============================================================
+
+The public website must NOT look like an admin dashboard.
+
+The internal ERP and public website have different UX purposes.
+
+ERP:
+
+Functional
+Data-heavy
+Task-oriented
+
+Public website:
+
+Welcoming
+Informative
+Visual
+School-focused
+Accessible
+
+The public site should feel like a professionally designed institutional website.
+
+It must still use the same underlying design language.
+
+============================================================
+MOBILE PUBLIC WEBSITE
+============================================================
+
+The public school website must be fully responsive.
+
+It must work properly on:
+
+- smartphones
+- tablets
+- laptops
+- desktops
+
+Prioritize mobile because many parents and visitors may access the school website through smartphones.
+
+============================================================
+SEO
+============================================================
+
+Public school pages should be structured with SEO in mind.
+
+Each school website should dynamically generate:
+
+- page title
+- meta description
+- school name
+- relevant headings
+- canonical URL where applicable
+- Open Graph metadata where appropriate
+
+Do not generate fake SEO content.
+
+Use actual school data.
+
+============================================================
+PUBLIC WEBSITE PERFORMANCE
+============================================================
+
+The public website should be lightweight.
+
+Optimize:
+
+- school images
+- gallery images
+- fonts
+- JavaScript
+- unnecessary API calls
+
+Use lazy loading for galleries where appropriate.
+
+Avoid loading the entire ERP application for a public visitor if the architecture allows a lighter public experience.
+
+============================================================
+PUBLIC ROUTING / ARCHITECTURE
+============================================================
+
+The implementation must support multi-school routing.
+
+Example:
+
+/school/zp-school-example
+
+/school/another-zp-school
+
+or another clean architecture selected by the existing project architecture.
+
+The important requirement is:
+
+school identity → route → school data → public website
+
+Do not hard-code school names inside components.
+
+============================================================
+SCHOOL DATA ISOLATION
+============================================================
+
+Every public request must resolve the correct school.
+
+For example:
+
+/school/school-a
+
+must NEVER display:
+
+school-b logo
+school-b gallery
+school-b announcements
+school-b facilities
+
+The backend/API layer must enforce school context.
+
+Do not trust arbitrary client-side school identifiers for private data access.
+
+============================================================
+PUBLIC WEBSITE ADMINISTRATION
+============================================================
+
+The principal or authorized school administrator should have a dedicated section in the ERP:
+
+"Public Website"
+
+This section should allow them to manage:
+
+- School profile
+- Logo
+- About content
+- Facilities
+- Achievements
+- Gallery
+- Events
+- Public announcements
+- Contact information
+
+The interface should provide previews where useful.
+
+Example:
+
+ERP:
+
+Public Website
+→ Edit School Profile
+→ Manage Gallery
+→ Manage Facilities
+→ Manage Achievements
+→ Manage Announcements
+→ Preview Website
+
+============================================================
+LIVE PREVIEW
+============================================================
+
+If technically practical within the existing architecture, provide:
+
+"Preview Website"
+
+The administrator should be able to see how the public school website appears before publishing changes.
+
+Do not create a completely separate content management system.
+
+The ERP itself should act as the content management interface.
+
+============================================================
+PUBLISHING MODEL
+============================================================
+
+Where appropriate, content should have:
+
+Draft
+Published
+Archived
+
+states.
+
+The system should avoid accidentally exposing incomplete content.
+
+For sensitive operations, require explicit publishing.
+
+============================================================
+SCHOOL WEBSITE TEMPLATE SYSTEM
+============================================================
+
+Build the public website using reusable components.
+
+For example:
+
+SchoolHeader
+SchoolHero
+SchoolAbout
+SchoolFacilities
+SchoolAchievements
+SchoolGallery
+SchoolAnnouncements
+SchoolEvents
+SchoolContact
+SchoolFooter
+
+These components should receive school-specific data.
+
+Do NOT create:
+
+SchoolAHome.tsx
+SchoolBHome.tsx
+SchoolCHome.tsx
+
+Instead create:
+
+SchoolPublicHome.tsx
+
+which dynamically renders the appropriate school's data.
+
+============================================================
+PLATFORM SCALABILITY
+============================================================
+
+The architecture must be capable of supporting:
+
+6 schools initially
+
+then:
+
+20 schools
+
+50 schools
+
+100+ schools
+
+without requiring a separate deployment for every school unless there is a deliberate future business reason.
+
+The database, routing, storage, authorization and frontend architecture should support this growth.
+
+============================================================
+IMPORTANT SECURITY REQUIREMENT
+============================================================
+
+Public website endpoints may expose only explicitly public information.
+
+Never expose database tables directly.
+
+Use controlled API responses / server-side queries.
+
+Do not return sensitive fields simply because they exist in the database.
+
+============================================================
+AUTOMATIC IMPLEMENTATION REQUIREMENT
+============================================================
+
+Implement this functionality as part of the application.
+
+Do NOT merely document the feature.
+
+Do NOT create placeholders such as:
+
+"Public website coming soon."
+
+Do NOT ask the developer to manually create six websites.
+
+Do NOT create mock pages that are disconnected from the ERP.
+
+Build the actual reusable architecture.
+
+============================================================
+IMPLEMENTATION ORDER
+============================================================
+
+Implement this only after the foundational:
+
+- authentication
+- authorization
+- multi-school architecture
+- database
+- school entity
+- school profile
+
+are stable.
+
+Then implement:
+
+1. School public profile data model
+2. Public visibility model
+3. Public website routing
+4. Public website layout
+5. Dynamic school branding
+6. Gallery
+7. Facilities
+8. Achievements
+9. Public announcements
+10. Events
+11. Contact
+12. Preview
+13. Publishing workflow
+14. SEO metadata
+15. Responsive optimization
+16. Security verification
+17. Cross-school isolation testing
+
+============================================================
+ACCEPTANCE CRITERIA
+============================================================
+
+The feature is considered complete only when:
+
+[ ] A new school can be created without writing new frontend code.
+
+[ ] The new school automatically gets a public website route.
+
+[ ] The correct school logo appears.
+
+[ ] The correct school information appears.
+
+[ ] The correct gallery appears.
+
+[ ] The correct facilities appear.
+
+[ ] The correct achievements appear.
+
+[ ] Public announcements appear only when published/public.
+
+[ ] Private ERP information is never exposed.
+
+[ ] School A cannot accidentally display School B content.
+
+[ ] The website works on mobile.
+
+[ ] The website follows DESIGN_SYSTEM.md.
+
+[ ] The website is visually distinct from the internal ERP while maintaining brand consistency.
+
+[ ] The principal can manage appropriate public content from the ERP.
+
+[ ] Public content does not require duplicate manual entry.
+
+[ ] The system remains reusable for additional schools.
+
+============================================================
+FINAL INSTRUCTION
+============================================================
+
+Treat this as a CORE PRODUCT REQUIREMENT, not an optional enhancement.
+
+Do not implement it as six separate websites.
+
+Build a reusable, data-driven, multi-school public website engine integrated into the School ERP.
+
+The final experience should make the platform feel like a complete digital ecosystem for Zilla Parishad schools:
+
+PUBLIC SCHOOL WEBSITE
+        ↕
+SCHOOL ERP
+        ↕
+STUDENT DATA
+        ↕
+ANALYTICS
+        ↕
+ACADEMIC ASSISTANCE
+        ↕
+AI SCHOOL ASSISTANT
+
+Implement this architecture while preserving all existing requirements in:
+
+PRD.md
+AGENTS.md
+DESIGN_SYSTEM.md
+ARCHITECTURE.md
+
+Do not break existing functionality.
+
+Do not duplicate code unnecessarily.
+
+Do not invent school data.
+
+Do not fabricate statistics.
+
+Do not expose private student information.
+
+Build the feature completely and professionally.

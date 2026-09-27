@@ -1,0 +1,26 @@
+version: '3.9'
+
+# Development compose — runs ONLY PostgreSQL locally.
+# Run backend and frontend with: npm run dev (in each folder)
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: zp_erp_postgres_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-zpschoolerp}
+      POSTGRES_USER: ${POSTGRES_USER:-zpuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-zppassword}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-zpuser} -d ${POSTGRES_DB:-zpschoolerp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_dev_data:

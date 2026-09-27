@@ -1,0 +1,90 @@
+/* ============================================================
+   ZP School ERP — Typography Base Styles
+   ============================================================ */
+
+body {
+  font-family: var(--font-family-base);
+  font-size: var(--text-base);
+  font-weight: var(--font-regular);
+  color: var(--color-neutral-800);
+  line-height: var(--leading-normal);
+}
+
+/* ── Heading Hierarchy ───────────────────────────────────── */
+
+h1 {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-neutral-900);
+  line-height: var(--leading-tight);
+}
+
+h2 {
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-neutral-800);
+  line-height: var(--leading-snug);
+}
+
+h3 {
+  font-size: var(--text-lg);
+  font-weight: var(--font-medium);
+  color: var(--color-neutral-800);
+  line-height: var(--leading-snug);
+}
+
+h4 {
+  font-size: var(--text-base);
+  font-weight: var(--font-medium);
+  color: var(--color-neutral-700);
+}
+
+h5, h6 {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-neutral-700);
+}
+
+/* ── Body Text ───────────────────────────────────────────── */
+
+p {
+  line-height: var(--leading-relaxed);
+  color: var(--color-neutral-700);
+}
+
+.text-secondary {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-500);
+}
+
+.text-caption {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-neutral-500);
+}
+
+/* ── Code ────────────────────────────────────────────────── */
+
+code, kbd, samp, pre {
+  font-family: var(--font-family-mono);
+  font-size: 0.9em;
+}
+
+code {
+  background: var(--color-neutral-100);
+  padding: 0.1em 0.3em;
+  border-radius: var(--radius-sm);
+  color: var(--color-neutral-800);
+}
+
+/* ── Link Styles ─────────────────────────────────────────── */
+
+a.link {
+  color: var(--color-primary-600);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+a.link:hover {
+  color: var(--color-primary-700);
+}
