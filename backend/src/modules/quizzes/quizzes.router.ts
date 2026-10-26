@@ -8,14 +8,14 @@ export const quizzesRouter = Router();
 
 quizzesRouter.use(authenticate, requireSchool);
 
-// Both Teachers and Students can view lists and details
-quizzesRouter.get('/', requireRole('TEACHER', 'STUDENT'), getQuizzes);
-quizzesRouter.get('/:id', requireRole('TEACHER', 'STUDENT'), getQuizById);
+// Principals, Teachers and Students can view lists and details
+quizzesRouter.get('/', requireRole('PRINCIPAL', 'TEACHER', 'STUDENT'), getQuizzes);
+quizzesRouter.get('/:id', requireRole('PRINCIPAL', 'TEACHER', 'STUDENT'), getQuizById);
 
-// Teachers can create and manage quizzes
-quizzesRouter.post('/', requireRole('TEACHER'), validateRequest(createQuizSchema), createQuiz);
-quizzesRouter.post('/:id/questions', requireRole('TEACHER'), validateRequest(addQuestionSchema), addQuestion);
-quizzesRouter.patch('/:id/publish', requireRole('TEACHER'), publishQuiz);
+// Principals and Teachers can create and manage quizzes
+quizzesRouter.post('/', requireRole('PRINCIPAL', 'TEACHER'), validateRequest(createQuizSchema), createQuiz);
+quizzesRouter.post('/:id/questions', requireRole('PRINCIPAL', 'TEACHER'), validateRequest(addQuestionSchema), addQuestion);
+quizzesRouter.patch('/:id/publish', requireRole('PRINCIPAL', 'TEACHER'), publishQuiz);
 
 // Students can submit attempts
 quizzesRouter.post('/:id/submit', requireRole('STUDENT'), validateRequest(submitQuizSchema), submitQuiz);

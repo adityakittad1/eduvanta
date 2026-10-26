@@ -1,18 +1,32 @@
 import axios from 'axios';
+import { getTenantSlug } from '../utils/tenant';
 
 export const api = (() => {
-  // Build base path – API is always under /api/v1, but we may need to include subdomain for future use
-  const basePath = '/api/v1';
-  // Optionally prepend subdomain as a header or param if backend expects it (currently tenant is resolved from host)
+  // Use VITE_API_URL in production, otherwise default to relative path which Vite proxies
+  const basePath = import.meta.env.VITE_API_URL || '/api/v1';
+  const tenantSlug = getTenantSlug();
   const instance = axios.create({
     baseURL: basePath,
     withCredentials: true, // Required for refresh token cookie
     headers: {
-      // No need to send subdomain in headers; backend resolves via host
+      ...(tenantSlug ? { 'X-Tenant-Slug': tenantSlug } : {})
     },
   });
   return instance;
 })();
+
+// Request interceptor — attach token and tenant slug dynamically
+api.interceptors.request.use((config) => {
+  const token = sessionStorage.getItem('accessToken');
+  if (token && !config.headers.Authorization) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  const slug = getTenantSlug();
+  if (slug) {
+    config.headers['X-Tenant-Slug'] = slug;
+  }
+  return config;
+});
 
 // Response interceptor — handle 401 by attempting token refresh
 let isRefreshing = false;
@@ -59,14 +73,15 @@ api.interceptors.response.use(
         sessionStorage.removeItem('accessToken');
         delete api.defaults.headers.common['Authorization'];
         refreshQueue = [];
-        window.location.href = '/login';
+        window.location.href = '/erp/login';
         return Promise.reject(error);
       } finally {
         isRefreshing = false;
       }
     }
 
-    return Promise.reject(error);
+    const customError = new Error(error.response?.data?.message || error.message);
+    return Promise.reject(customError);
   }
 );
 

@@ -30,19 +30,37 @@ export function ClassesListPage() {
   const handleCreateClass = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const data = {
-      name: formData.get('name') as string,
-      division: formData.get('division') as string || undefined,
-      academicYear: formData.get('academicYear') as string,
-    };
+    const academicYear = formData.get('academicYear') as string;
+    const defaultClasses = formData.getAll('defaultClasses') as string[];
+    const customName = formData.get('customName') as string;
+    const customDivision = formData.get('customDivision') as string || undefined;
+
+    const classesToCreate: { name: string, division?: string, academicYear: string }[] = [];
+
+    // Add default classes
+    defaultClasses.forEach(cls => {
+      classesToCreate.push({ name: cls, academicYear });
+    });
+
+    // Add custom class if provided
+    if (customName && customName.trim() !== '') {
+      classesToCreate.push({ name: customName, division: customDivision, academicYear });
+    }
+
+    if (classesToCreate.length === 0) {
+      toast.error('Please select at least one class or enter a custom class');
+      return;
+    }
 
     try {
-      await classesApi.createClass(data);
-      toast.success('Class created successfully');
+      // Loop over and create (no bulk API yet, so we do Promise.all)
+      await Promise.all(classesToCreate.map(data => classesApi.createClass(data)));
+      toast.success(`${classesToCreate.length} class(es) created successfully`);
       setIsModalOpen(false);
       fetchClasses();
     } catch (error: any) {
-      toast.error(error.message || 'Failed to create class');
+      toast.error(error.message || 'Failed to create some classes');
+      fetchClasses(); // Refresh anyway to show what succeeded
     }
   };
 
@@ -125,14 +143,30 @@ export function ClassesListPage() {
         </div>
       )}
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Class">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create Classes">
         <form onSubmit={handleCreateClass} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          <Input label="Class Name" name="name" placeholder="e.g., Class 5, Grade 10" required />
-          <Input label="Division / Section" name="division" placeholder="e.g., A, Science (Optional)" />
+          <div style={{ marginBottom: 'var(--space-2)' }}>
+            <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)', color: 'var(--color-neutral-900)', marginBottom: 'var(--space-2)' }}>Select Default Classes</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-2)', maxHeight: '200px', overflowY: 'auto', padding: 'var(--space-2)', background: 'var(--color-neutral-50)', border: '1px solid var(--color-neutral-200)', borderRadius: 'var(--radius-md)' }}>
+              {['Nursery', 'LKG', 'UKG', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10'].map(cls => (
+                <label key={cls} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-sm)', cursor: 'pointer' }}>
+                  <input type="checkbox" name="defaultClasses" value={cls} />
+                  {cls}
+                </label>
+              ))}
+            </div>
+          </div>
+          
+          <div style={{ borderTop: '1px solid var(--color-neutral-200)', paddingTop: 'var(--space-4)' }}>
+            <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)', color: 'var(--color-neutral-900)', marginBottom: 'var(--space-2)' }}>Or Add Custom Class</h4>
+            <Input label="Custom Class Name" name="customName" placeholder="e.g., Grade 11" />
+            <Input label="Division / Section" name="customDivision" placeholder="e.g., A, Science (Optional)" />
+          </div>
+          
           <Input label="Academic Year" name="academicYear" defaultValue={new Date().getFullYear() + '-' + (new Date().getFullYear() + 1)} required />
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
             <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-            <Button type="submit" variant="primary">Create Class</Button>
+            <Button type="submit" variant="primary">Create Classes</Button>
           </div>
         </form>
       </Modal>

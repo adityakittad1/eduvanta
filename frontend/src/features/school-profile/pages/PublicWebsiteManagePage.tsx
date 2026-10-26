@@ -192,7 +192,7 @@ export function PublicWebsiteManagePage() {
 
         {profile?.slug && (
           <a
-            href={getTenantUrl(profile.slug)}
+            href={`/school/${profile.slug}`}
             target="_blank"
             rel="noopener noreferrer"
             style={{ textDecoration: 'none' }}

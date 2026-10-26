@@ -75,12 +75,17 @@ export async function login(req: Request, res: Response, next: NextFunction): Pr
     // ---- Tenant consistency check ----
     // If request resolved a tenant (subdomain), ensure the user belongs to that tenant.
     // SUPER_ADMIN may login without a tenant (root domain) or any tenant.
-    if (req.tenant && req.tenant!.id && user.schoolId && user.schoolId !== req.tenant!.id && user.role !== 'SUPER_ADMIN') {
-      throw new AppError('Tenant mismatch', 403, 'TENANT_MISMATCH');
+    if (req.tenant && req.tenant.id && user.schoolId && user.schoolId !== req.tenant.id && user.role !== 'SUPER_ADMIN') {
+      throw new AppError('Tenant mismatch: this account belongs to a different school', 403, 'TENANT_MISMATCH');
     }
-    // If no tenant resolved and user is not SUPER_ADMIN, reject login (prevent root login for regular users)
-    if (!req.tenant && user.role !== 'SUPER_ADMIN') {
-      throw new AppError('Tenant required for login', 400, 'BAD_REQUEST');
+    // If no tenant was resolved from hostname (e.g. root domain login), adopt the user's assigned school as the tenant context.
+    if (!req.tenant && user.school) {
+      req.tenant = {
+        id: user.school.id,
+        slug: user.school.slug ?? '',
+        name: user.school.name,
+        logoUrl: user.school.logoUrl ?? undefined,
+      };
     }
 
     const passwordValid = await bcrypt.compare(password, user.passwordHash);
@@ -264,7 +269,7 @@ export function authenticate(req: Request, _res: Response, next: NextFunction): 
       schoolId: string | null;
     };
     // Verify tenant consistency (unless SUPER_ADMIN)
-    if (req.tenant && decoded.schoolId && decoded.schoolId !== req.tenant!.id && decoded.role !== 'SUPER_ADMIN') {
+    if (req.tenant && decoded.schoolId && decoded.schoolId !== req.tenant.id && decoded.role !== 'SUPER_ADMIN') {
       return next(new AppError('Tenant mismatch', 403, 'TENANT_MISMATCH'));
     }
     req.user = {
@@ -274,6 +279,14 @@ export function authenticate(req: Request, _res: Response, next: NextFunction): 
       role: decoded.role,
       schoolId: decoded.schoolId,
     };
+    // If req.tenant was not resolved via subdomain/header, populate it from user's school context
+    if (!req.tenant && decoded.schoolId) {
+      req.tenant = {
+        id: decoded.schoolId,
+        slug: '',
+        name: '',
+      };
+    }
     next();
   } catch {
     next(new AppError('Invalid or expired token', 401, 'UNAUTHORIZED'));
@@ -293,12 +306,23 @@ export function requireRole(...roles: Role[]) {
 }
 
 export function requireSchool(req: Request, _res: Response, next: NextFunction): void {
-  if (!req.tenant!.id) {
+  if (req.user?.role === 'SUPER_ADMIN') {
+    return next();
+  }
+  const tenantId = req.tenant?.id || req.user?.schoolId;
+  if (!tenantId) {
     return next(new AppError('School context required', 400, 'BAD_REQUEST'));
   }
-  // Enforce tenant match unless SUPER_ADMIN
-  if (req.tenant && req.user!.schoolId !== req.tenant!.id && req.user!.role !== 'SUPER_ADMIN') {
+  // Enforce tenant match if both req.tenant and req.user.schoolId are present
+  if (req.tenant && req.user?.schoolId && req.user.schoolId !== req.tenant.id) {
     return next(new AppError('Tenant mismatch', 403, 'TENANT_MISMATCH'));
+  }
+  if (!req.tenant && req.user?.schoolId) {
+    req.tenant = {
+      id: req.user.schoolId,
+      slug: '',
+      name: '',
+    };
   }
   next();
 }

@@ -20,25 +20,29 @@ declare global {
 }
 
 export async function tenantResolver(req: Request, _res: Response, next: NextFunction): Promise<void> {
+  // 1. Check custom header first (used for cross-origin API calls)
+  const headerSlug = req.headers['x-tenant-slug'];
+  
+  // 2. Fallback to parsing host
   const hostHeader = req.headers.host;
-  if (!hostHeader) {
-    return next(new AppError('Host header missing', 400, 'BAD_REQUEST'));
+  let slug = '';
+  
+  if (typeof headerSlug === 'string' && headerSlug.trim() !== '') {
+    slug = headerSlug.trim();
+  } else if (hostHeader) {
+    const host = hostHeader.split(':')[0];
+    const rootDomain = env.ROOT_DOMAIN || 'localhost';
+
+    // If request is to the root domain or 'admin' subdomain, skip tenant resolution
+    if (host === rootDomain || host === `admin.${rootDomain}`) {
+      return next();
+    }
+    slug = host.replace(`.${rootDomain}`, '');
   }
 
-  // Strip port if present
-  const host = hostHeader.split(':')[0];
-  const rootDomain = env.ROOT_DOMAIN || 'localhost';
-
-  console.log('tenantResolver -> host:', host, 'rootDomain:', rootDomain, 'admin:', `admin.${rootDomain}`);
-
-  // If request is to the root domain or 'admin' subdomain, skip tenant resolution
-  if (host === rootDomain || host === `admin.${rootDomain}`) {
-    console.log('Skipping tenant resolution for:', host);
-    return next();
+  if (!slug) {
+    return next(new AppError('Tenant slug could not be determined', 400, 'BAD_REQUEST'));
   }
-
-  const slug = host.replace(`.${rootDomain}`, '');
-  console.log('Resolving tenant slug:', slug);
 
   try {
     const school = await prisma.school.findUnique({

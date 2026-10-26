@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { School, MapPin, ExternalLink, Search } from 'lucide-react';
 import { publicWebsiteApi, PublicSchoolSummary } from '../api/publicWebsite';
-import { getTenantUrl } from '@/utils/tenant';
 import '../styles/publicWebsite.css';
 
 export function SchoolDirectoryPage() {
@@ -118,9 +117,9 @@ export function SchoolDirectoryPage() {
                 gap: 'var(--space-5)',
               }}>
                 {filtered.map(school => (
-                  <a
+                  <Link
                     key={school.id}
-                    href={getTenantUrl(school.slug || school.id)}
+                    to={`/school/${school.slug || school.id}`}
                     style={{ textDecoration: 'none' }}
                   >
                     <div style={{
@@ -171,7 +170,7 @@ export function SchoolDirectoryPage() {
                         </div>
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 ))}
               </div>
 

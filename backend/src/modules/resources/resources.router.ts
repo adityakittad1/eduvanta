@@ -8,5 +8,5 @@ export const resourcesRouter = Router();
 
 resourcesRouter.use(authenticate, requireSchool);
 
-resourcesRouter.get('/', requireRole('TEACHER', 'STUDENT'), getResources);
-resourcesRouter.post('/', requireRole('TEACHER'), validateRequest(createResourceSchema), createResource);
+resourcesRouter.get('/', requireRole('PRINCIPAL', 'TEACHER', 'STUDENT'), getResources);
+resourcesRouter.post('/', requireRole('PRINCIPAL', 'TEACHER'), validateRequest(createResourceSchema), createResource);

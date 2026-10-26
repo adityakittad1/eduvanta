@@ -101,11 +101,14 @@ export async function createStudent(req: Request, res: Response, next: NextFunct
     // Auto-provision user account if email is provided, else generate one
     let emailToUse = data.email?.trim() || '';
     if (!emailToUse) {
-      const baseEmail = `${data.firstName.toLowerCase()}.${data.lastName.toLowerCase()}.${schoolSlug}`;
+      const cleanFirstName = data.firstName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const cleanLastName = data.lastName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const baseEmail = `${cleanFirstName}.${cleanLastName}.${schoolSlug}`;
       let suffix = 1;
       let isUnique = false;
       while (!isUnique) {
-        emailToUse = `${baseEmail}${suffix}@gmail.com`;
+        const suffixStr = String(suffix).padStart(3, '0');
+        emailToUse = `${baseEmail}${suffixStr}@eduvanta.student`;
         const exists = await prisma.user.findUnique({ where: { email: emailToUse } });
         if (!exists) {
           isUnique = true;

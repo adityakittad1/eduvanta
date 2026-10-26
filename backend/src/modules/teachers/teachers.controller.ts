@@ -79,9 +79,32 @@ export async function createTeacher(req: Request, res: Response, next: NextFunct
 
     const data = req.body as CreateTeacherInput;
 
-    const existingUser = await prisma.user.findUnique({ where: { email: data.email } });
-    if (existingUser) {
-      throw new AppError('This email is already associated with another account', 400, 'DUPLICATE_EMAIL');
+    const school = await prisma.school.findUnique({ where: { id: schoolId } });
+    if (!school) throw new AppError('School not found', 404, 'NOT_FOUND');
+    const schoolSlug = school.slug ? school.slug.replace(/-/g, '').toLowerCase() : 'school';
+
+    let emailToUse = data.email?.trim() || '';
+    if (!emailToUse) {
+      const cleanFirstName = data.firstName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const cleanLastName = data.lastName.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+      const baseEmail = `teacher.${cleanFirstName}.${cleanLastName}`;
+      let suffix = 1;
+      let isUnique = false;
+      while (!isUnique) {
+        const suffixStr = suffix === 1 ? '' : String(suffix);
+        emailToUse = `${baseEmail}${suffixStr}@${schoolSlug}.eduvanta.teacher`;
+        const exists = await prisma.user.findUnique({ where: { email: emailToUse } });
+        if (!exists) {
+          isUnique = true;
+        } else {
+          suffix++;
+        }
+      }
+    } else {
+      const existingUser = await prisma.user.findUnique({ where: { email: emailToUse } });
+      if (existingUser) {
+        throw new AppError('This email is already associated with another account', 400, 'DUPLICATE_EMAIL');
+      }
     }
 
     // Default password: Teacher@123 — principal should communicate this to the teacher
@@ -91,7 +114,7 @@ export async function createTeacher(req: Request, res: Response, next: NextFunct
     const teacher = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
-          email: data.email,
+          email: emailToUse,
           name: `${data.firstName} ${data.lastName}`.trim(), // Store display name
           passwordHash,
           role: 'TEACHER',

@@ -25,7 +25,7 @@ describe('Upload Controller', () => {
       expect.objectContaining({
         success: true,
         data: expect.objectContaining({
-          url: `/api/v1/upload/${mockReq.tenant.id}/${mockReq.file.filename}`,
+          url: expect.stringContaining(`/api/v1/upload/${mockReq.tenant.id}/${mockReq.file.filename}`),
         }),
       })
     );

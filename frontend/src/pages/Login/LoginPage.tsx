@@ -27,8 +27,13 @@ export function LoginPage() {
       await login(email.trim(), password);
       // Navigation is now handled safely by PublicRoute based on the user's role
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
-      setError(axiosErr?.response?.data?.message ?? 'Login failed. Please check your credentials.');
+      // The API interceptor now throws a standard Error with the backend message
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        const axiosErr = err as { response?: { data?: { message?: string } } };
+        setError(axiosErr?.response?.data?.message ?? 'Login failed. Please check your credentials.');
+      }
     } finally {
       setLoading(false);
     }

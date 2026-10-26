@@ -15,6 +15,7 @@ import { AttendanceMarkingPage } from '@/features/attendance/pages/AttendanceMar
 import { AssessmentsListPage } from '@/features/academics/pages/AssessmentsListPage';
 import { AssessmentGradingPage } from '@/features/academics/pages/AssessmentGradingPage';
 import { EarlyWarningPage } from '@/features/analytics/pages/EarlyWarningPage';
+import { AnalyticsPage } from '@/features/analytics/pages/AnalyticsPage';
 import { QuizzesListPage } from '@/features/quizzes/pages/QuizzesListPage';
 import { QuizBuilderPage } from '@/features/quizzes/pages/QuizBuilderPage';
 import { QuizAttemptPage } from '@/features/quizzes/pages/QuizAttemptPage';
@@ -85,8 +86,11 @@ export function AppRouter() {
               {/* ── Public routes — No auth required ──────── */}
               <Route path="/" element={<TenantHomeRouter />} />
               <Route path="/schools" element={<SchoolDirectoryPage />} />
+              <Route path="/school/:slug" element={<SchoolPublicHome />} />
+              <Route path="/schools/:slug" element={<SchoolPublicHome />} />
 
               {/* ── ERP public auth routes ─────────────────── */}
+              <Route path="/login" element={<Navigate to="/erp/login" replace />} />
               <Route path="/erp/login" element={
                 <PublicRoute><LoginPage /></PublicRoute>
               } />
@@ -154,7 +158,12 @@ export function AppRouter() {
                     <AssessmentGradingPage />
                   </ProtectedRoute>
                 } />
-                {/* Phase 10: Early Warning System */}
+                {/* Phase 10: Analytics & Early Warning System */}
+                <Route path="analytics" element={
+                  <ProtectedRoute allowedRoles={['PRINCIPAL', 'TEACHER']}>
+                    <AnalyticsPage />
+                  </ProtectedRoute>
+                } />
                 <Route path="early-warning" element={
                   <ProtectedRoute allowedRoles={['PRINCIPAL', 'TEACHER']}>
                     <EarlyWarningPage />

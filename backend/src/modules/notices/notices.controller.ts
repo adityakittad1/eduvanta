@@ -76,3 +76,19 @@ export async function createNotice(req: Request, res: Response, next: NextFuncti
     next(error);
   }
 }
+
+export async function deleteNotice(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const schoolId = req.tenant!.id;
+    const id = req.params.id as string;
+    const existing = await prisma.notice.findFirst({ where: { id, schoolId } });
+    if (!existing) {
+      throw new AppError('Notice not found', 404, 'NOT_FOUND');
+    }
+    await prisma.notice.delete({ where: { id } });
+    res.json({ success: true, message: 'Notice deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+}
+

@@ -108,7 +108,10 @@ export async function createQuiz(req: Request, res: Response, next: NextFunction
 
     const data = req.body as CreateQuizInput;
 
-    const teacher = await prisma.teacher.findUnique({ where: { userId: req.user?.id } });
+    let teacher = await prisma.teacher.findUnique({ where: { userId: req.user?.id } });
+    if (!teacher && req.user?.role === 'PRINCIPAL') {
+      teacher = await prisma.teacher.findFirst({ where: { schoolId } });
+    }
     if (!teacher) throw new AppError('Teacher profile not found', 404, 'NOT_FOUND');
 
     const quiz = await prisma.quizDefinition.create({

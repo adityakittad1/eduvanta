@@ -1,18 +1,27 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../../middleware/errorHandler';
+import { processAiPrompt } from './ai.service';
 
 export async function askAi(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    const schoolId = req.tenant!.id;
+    const schoolId = req.tenant?.id || req.user?.schoolId;
     if (!schoolId) throw new AppError('No school context', 400, 'BAD_REQUEST');
 
     const { prompt } = req.body;
+    if (!prompt || typeof prompt !== 'string') {
+      throw new AppError('Prompt is required', 400, 'BAD_REQUEST');
+    }
 
-    // TODO: Integrate actual LLM logic here.
-    // For now, return a mock response.
-    const mockResponse = `This is a simulated AI response to: "${prompt}".\n\nTo integrate a real LLM, update \`ai.controller.ts\` and ensure API keys are set in \`.env\`.`;
+    const user = {
+      userId: req.user!.id,
+      role: req.user!.role,
+      name: req.user!.name,
+      email: req.user!.email,
+    };
 
-    res.json({ success: true, data: { response: mockResponse } });
+    const aiResponse = await processAiPrompt(prompt, schoolId, user);
+
+    res.json({ success: true, data: { response: aiResponse } });
   } catch (error) {
     next(error);
   }

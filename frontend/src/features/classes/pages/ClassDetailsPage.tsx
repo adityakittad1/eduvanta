@@ -53,16 +53,33 @@ export function ClassDetailsPage() {
     e.preventDefault();
     if (!id) return;
     const formData = new FormData(e.currentTarget);
+    const defaultSubjects = formData.getAll('defaultSubjects') as string[];
+    const customName = formData.get('customName') as string;
+    const customCode = formData.get('customCode') as string || undefined;
+
+    const subjectsToCreate: { name: string, code?: string }[] = [];
+
+    defaultSubjects.forEach(sub => {
+      subjectsToCreate.push({ name: sub, code: sub.substring(0, 4).toUpperCase() });
+    });
+
+    if (customName && customName.trim() !== '') {
+      subjectsToCreate.push({ name: customName, code: customCode });
+    }
+
+    if (subjectsToCreate.length === 0) {
+      toast.error('Please select at least one subject or enter a custom one');
+      return;
+    }
+
     try {
-      await classesApi.createSubject(id, {
-        name: formData.get('name') as string,
-        code: formData.get('code') as string || undefined,
-      });
-      toast.success('Subject created');
+      await Promise.all(subjectsToCreate.map(data => classesApi.createSubject(id, data)));
+      toast.success(`${subjectsToCreate.length} Subject(s) created`);
       setIsSubjectModalOpen(false);
       fetchAllData();
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.message || 'Failed to create some subjects (may already exist)');
+      fetchAllData();
     }
   };
 
@@ -221,13 +238,28 @@ export function ClassDetailsPage() {
       </div>
 
       {/* MODALS */}
-      <Modal isOpen={isSubjectModalOpen} onClose={() => setIsSubjectModalOpen(false)} title="Add Subject">
+      <Modal isOpen={isSubjectModalOpen} onClose={() => setIsSubjectModalOpen(false)} title="Add Subjects">
         <form onSubmit={handleCreateSubject} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          <Input label="Subject Name" name="name" required placeholder="e.g., Mathematics" />
-          <Input label="Subject Code" name="code" placeholder="Optional" />
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)' }}>
+          <div style={{ marginBottom: 'var(--space-2)' }}>
+            <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)', color: 'var(--color-neutral-900)', marginBottom: 'var(--space-2)' }}>Select Default Subjects</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-2)', maxHeight: '200px', overflowY: 'auto', padding: 'var(--space-2)', background: 'var(--color-neutral-50)', border: '1px solid var(--color-neutral-200)', borderRadius: 'var(--radius-md)' }}>
+              {['Marathi', 'Hindi', 'English', 'Mathematics', 'Science', 'Social Science', 'Environmental Studies', 'Computer', 'Physical Education'].map(sub => (
+                <label key={sub} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-sm)', cursor: 'pointer' }}>
+                  <input type="checkbox" name="defaultSubjects" value={sub} />
+                  {sub}
+                </label>
+              ))}
+            </div>
+          </div>
+          
+          <div style={{ borderTop: '1px solid var(--color-neutral-200)', paddingTop: 'var(--space-4)' }}>
+            <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)', color: 'var(--color-neutral-900)', marginBottom: 'var(--space-2)' }}>Or Add Custom Subject</h4>
+            <Input label="Subject Name" name="customName" placeholder="e.g., General Knowledge" />
+            <Input label="Subject Code" name="customCode" placeholder="Optional" />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)', marginTop: 'var(--space-2)' }}>
             <Button type="button" variant="ghost" onClick={() => setIsSubjectModalOpen(false)}>Cancel</Button>
-            <Button type="submit">Add Subject</Button>
+            <Button type="submit">Add Subjects</Button>
           </div>
         </form>
       </Modal>

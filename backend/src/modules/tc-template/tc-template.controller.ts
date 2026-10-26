@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
+import { supabase } from '../../lib/supabase';
 
 export async function getTemplates(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -116,20 +117,38 @@ export async function generateTc(req: Request, res: Response, next: NextFunction
     const school = await prisma.school.findUnique({ where: { id: schoolId } });
     if (!school) throw new AppError('School not found', 404, 'NOT_FOUND');
 
-    // 3. Get active template
-    const template = await prisma.tcTemplate.findFirst({
+    // 3. Get active template or fallback
+    let template = await prisma.tcTemplate.findFirst({
       where: { schoolId, status: 'ACTIVE' }
     });
-    if (!template) throw new AppError('No active TC template found for this school', 400, 'BAD_REQUEST');
 
-    // 4. Load the DOCX file
-    // fileUrl is like "/uploads/123.docx"
-    const filePath = path.join(__dirname, '../../..', template.fileUrl);
-    if (!fs.existsSync(filePath)) {
-      throw new AppError('Template file is missing from server', 500, 'INTERNAL_SERVER_ERROR');
+    let content: Buffer;
+    if (template && template.fileUrl) {
+      if (template.fileUrl.startsWith('http')) {
+        // Remote URL (Supabase)
+        const response = await fetch(template.fileUrl);
+        if (!response.ok) {
+          throw new AppError('Failed to fetch template from storage', 500, 'INTERNAL_SERVER_ERROR');
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        content = Buffer.from(arrayBuffer);
+      } else {
+        // Local URL fallback
+        const filePath = path.join(__dirname, '../../..', template.fileUrl);
+        if (!fs.existsSync(filePath)) {
+          throw new AppError('Template file is missing from server', 500, 'INTERNAL_SERVER_ERROR');
+        }
+        content = fs.readFileSync(filePath);
+      }
+    } else {
+      // Fallback to global default template
+      const defaultPath = path.join(__dirname, '../../../public', 'default-tc-template.docx');
+      if (!fs.existsSync(defaultPath)) {
+         throw new AppError('No TC template available (missing default)', 400, 'BAD_REQUEST');
+      }
+      content = fs.readFileSync(defaultPath);
     }
 
-    const content = fs.readFileSync(filePath, 'binary');
     const zip = new PizZip(content);
     const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
 
@@ -157,17 +176,28 @@ export async function generateTc(req: Request, res: Response, next: NextFunction
 
     // 6. Save the generated document
     const generatedFilename = `TC_${tc.student.admissionNumber}_${Date.now()}.docx`;
-    const generatedPath = path.join(__dirname, '../../../uploads', generatedFilename);
-    fs.writeFileSync(generatedPath, buf);
+    let generatedFileUrl = '';
 
-    const generatedFileUrl = `/uploads/${generatedFilename}`;
+
+    if (supabase) {
+      const filePath = `${schoolId}/${generatedFilename}`;
+      const { error } = await supabase.storage.from('eduvanta-assets').upload(filePath, buf, { contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+      if (error) throw new AppError('Failed to upload generated TC to Supabase', 500, 'INTERNAL_SERVER_ERROR');
+      
+      const { data: publicUrlData } = supabase.storage.from('eduvanta-assets').getPublicUrl(filePath);
+      generatedFileUrl = publicUrlData.publicUrl;
+    } else {
+      const generatedPath = path.join(__dirname, '../../../uploads', generatedFilename);
+      fs.writeFileSync(generatedPath, buf);
+      generatedFileUrl = `/uploads/${generatedFilename}`;
+    }
 
     // 7. Update the TC record
     const updatedTc = await prisma.transferCertificate.update({
       where: { id: tc.id },
       data: {
-        templateId: template.id,
-        templateVersion: template.version,
+        templateId: template?.id || null,
+        templateVersion: template?.version || 1,
         fileUrl: generatedFileUrl,
         status: 'ISSUED',
         issuedDate: new Date()

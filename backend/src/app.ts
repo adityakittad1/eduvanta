@@ -6,7 +6,7 @@ import { env } from './config/env';
 import { tenantResolver } from './middleware/tenantResolver';
 import { requireTenant } from './middleware/requireTenant';
 import { logger } from './lib/logger';
-import { errorHandler } from './middleware/errorHandler';
+import { errorHandler, AppError } from './middleware/errorHandler';
 import { notFound } from './middleware/notFound';
 
 
@@ -44,12 +44,29 @@ export function createApp(): Application {
 
   // ─── CORS ────────────────────────────────────────────────
   app.use(cors({
-    origin: env.NODE_ENV === 'production'
-      ? [env.FRONTEND_URL]
-      : ['http://localhost:5173', 'http://localhost:3000', env.FRONTEND_URL],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests) if needed, 
+      // but typically browsers will send origin.
+      if (!origin) return callback(null, true);
+      
+      const rootDomain = env.ROOT_DOMAIN === 'localhost' ? 'localhost' : env.ROOT_DOMAIN;
+      const allowedOrigins = [env.FRONTEND_URL, 'http://localhost:5173', 'http://localhost:3000'];
+      
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      
+      // Allow any subdomain of ROOT_DOMAIN, optionally with a port
+      const urlPattern = new RegExp(`^https?:\\/\\/[a-zA-Z0-9-]+\\.${rootDomain}(:\\d+)?$`);
+      if (urlPattern.test(origin) || origin === `https://${rootDomain}` || origin === `http://${rootDomain}`) {
+        return callback(null, true);
+      }
+      
+      callback(new AppError(`CORS policy restricts access from origin: ${origin}`, 403, 'CORS_ERROR'));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Tenant-Slug', 'x-tenant-slug'],
   }));
 
   // ─── Body Parsers ────────────────────────────────────────

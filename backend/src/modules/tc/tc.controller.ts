@@ -54,9 +54,9 @@ export async function requestTc(req: Request, res: Response, next: NextFunction)
 
     if (!studentId) throw new AppError('Student ID is required', 400, 'BAD_REQUEST');
 
-    // Generate unique TC number (simplified)
-    const tcCount = await prisma.transferCertificate.count({ where: { schoolId } });
-    const tcNumber = `TC-${new Date().getFullYear()}-${String(tcCount + 1).padStart(4, '0')}`;
+    // Generate unique TC number
+    const globalCount = await prisma.transferCertificate.count();
+    const tcNumber = `TC-${new Date().getFullYear()}-${String(globalCount + 1).padStart(5, '0')}`;
 
     const tc = await prisma.transferCertificate.create({
       data: {

@@ -397,9 +397,276 @@ h1, h2, h3, h4, h5, h6, .public-header-brand {
   margin: 0 auto;
 }
 
+/* ─── Principal Card ─────────────────────────────────────── */
+.public-about-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 3rem;
+  align-items: center;
+}
+.public-principal-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  position: relative;
+}
+.public-principal-quote {
+  font-style: italic;
+  color: #475569;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  margin-bottom: 1.5rem;
+}
+.public-principal-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.public-principal-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+/* ─── Achievements ───────────────────────────────────────── */
+.public-achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+}
+.public-achievement-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.public-achievement-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border-color: #f59e0b;
+}
+.public-achievement-icon {
+  width: 56px;
+  height: 56px;
+  background: #fef3c7;
+  color: #d97706;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+.public-achievement-year {
+  display: inline-block;
+  background: #fef3c7;
+  color: #b45309;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+.public-achievement-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+.public-achievement-desc {
+  font-size: 0.95rem;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+/* ─── Announcements / Notices ────────────────────────────── */
+.public-notices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+}
+.public-notice-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.public-notice-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 20px -3px rgba(0, 0, 0, 0.08);
+  border-color: var(--color-primary-300);
+}
+.public-notice-date {
+  font-size: 0.8rem;
+  color: var(--color-primary-600);
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.public-notice-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.75rem;
+  line-height: 1.4;
+}
+.public-notice-content {
+  font-size: 0.95rem;
+  color: #475569;
+  line-height: 1.6;
+  flex: 1;
+}
+
+/* ─── Events ─────────────────────────────────────────────── */
+.public-events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
+}
+.public-event-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 2rem;
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.public-event-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 20px -3px rgba(0, 0, 0, 0.08);
+  border-color: var(--color-primary-300);
+}
+.public-event-date-badge {
+  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-800));
+  color: white;
+  border-radius: 14px;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  min-width: 65px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3);
+}
+.public-event-day {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.public-event-month {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
+}
+.public-event-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+}
+.public-event-desc {
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* ─── Lightbox Modal ─────────────────────────────────────── */
+.public-lightbox-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.public-lightbox-content {
+  max-width: 900px;
+  max-height: 90vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.public-lightbox-img {
+  max-width: 100%;
+  max-height: 75vh;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+.public-lightbox-caption {
+  color: white;
+  margin-top: 1rem;
+  text-align: center;
+}
+.public-lightbox-close {
+  position: absolute;
+  top: -2.5rem;
+  right: 0;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.8rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* ─── Mobile Menu ────────────────────────────────────────── */
+.public-mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #334155;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+.public-mobile-nav {
+  display: none;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 1.5rem 2rem;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: sticky;
+  top: 80px;
+  z-index: 99;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+.public-mobile-nav.open {
+  display: flex;
+}
+
 @media (max-width: 768px) {
   .public-nav { display: none; }
+  .public-mobile-toggle { display: block; }
   .public-hero { padding: 6rem 1.5rem 8rem; }
   .public-hero-title { font-size: 2.5rem; }
   .public-section { padding: 4rem 1.5rem; }
+  .public-about-grid { grid-template-columns: 1fr; gap: 2rem; }
 }
