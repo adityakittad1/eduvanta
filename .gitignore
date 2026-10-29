@@ -9,9 +9,15 @@ build/
 
 # Environment variables — NEVER commit
 .env
+.env.*
+!.env.example
 .env.local
 .env.production
 .env.staging
+
+# Deployment / Serverless
+.vercel/
+
 
 # Logs
 logs/
