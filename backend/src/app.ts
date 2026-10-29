@@ -58,7 +58,13 @@ export function createApp(): Application {
       
       // Allow any subdomain of ROOT_DOMAIN, optionally with a port
       const urlPattern = new RegExp(`^https?:\\/\\/[a-zA-Z0-9-]+\\.${rootDomain}(:\\d+)?$`);
-      if (urlPattern.test(origin) || origin === `https://${rootDomain}` || origin === `http://${rootDomain}`) {
+      if (
+        urlPattern.test(origin) || 
+        origin === `https://${rootDomain}` || 
+        origin === `http://${rootDomain}` ||
+        origin.endsWith('.vercel.app') ||
+        origin.endsWith('.vercel.sh')
+      ) {
         return callback(null, true);
       }
       
@@ -93,6 +99,10 @@ export function createApp(): Application {
   // ─── Tenant resolution (subdomain) ───────────────────────
   app.use(tenantResolver);
   // requireTenant is applied explicitly to routes that need it, not globally.
+
+  // ─── Direct Health & Ping Endpoints ─────────────────────
+  app.get(['/health', '/api/health'], (_req, res) => res.json({ status: 'ok', service: 'backend', timestamp: new Date().toISOString() }));
+  app.get(['/', '/api'], (_req, res) => res.json({ status: 'ok', message: 'EduVanta ERP API', timestamp: new Date().toISOString() }));
 
   // ─── API Routes (Supports both /api/v1 and /v1 for Vercel Services prefixing) ──
   const apiPrefixes = ['/api/v1', '/v1'];

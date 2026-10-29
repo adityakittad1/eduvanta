@@ -20,46 +20,77 @@ declare global {
 }
 
 export async function tenantResolver(req: Request, _res: Response, next: NextFunction): Promise<void> {
-  // 1. Check custom header first (used for cross-origin API calls)
+  // 1. Check custom header first (used for cross-origin or explicit tenant API calls)
   const headerSlug = req.headers['x-tenant-slug'];
-  
-  // 2. Fallback to parsing host
-  const hostHeader = req.headers.host;
-  let slug = '';
-  
   if (typeof headerSlug === 'string' && headerSlug.trim() !== '') {
-    slug = headerSlug.trim();
-  } else if (hostHeader) {
-    const host = hostHeader.split(':')[0];
-    const rootDomain = env.ROOT_DOMAIN || 'localhost';
+    const slug = headerSlug.trim();
+    try {
+      const school = await prisma.school.findUnique({
+        where: { slug },
+        select: { id: true, slug: true, name: true, logoUrl: true },
+      });
+      if (!school) {
+        return next(new AppError('Tenant not found', 404, 'TENANT_NOT_FOUND'));
+      }
+      req.tenant = {
+        id: school.id,
+        slug: school.slug ?? slug,
+        name: school.name,
+        logoUrl: school.logoUrl ?? undefined,
+      };
+      return next();
+    } catch (err) {
+      return next(new AppError('Tenant resolution error', 500, 'TENANT_ERROR'));
+    }
+  }
 
-    // If request is to the root domain or 'admin' subdomain, skip tenant resolution
-    if (host === rootDomain || host === `admin.${rootDomain}`) {
+  // 2. Parse host header
+  const hostHeader = req.headers.host;
+  if (!hostHeader) {
+    return next();
+  }
+
+  const host = hostHeader.split(':')[0].toLowerCase();
+  const rootDomain = (env.ROOT_DOMAIN || 'localhost').toLowerCase();
+
+  // Root platform domains: skip tenant resolution
+  if (
+    host === rootDomain ||
+    host === `admin.${rootDomain}` ||
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host.endsWith('.vercel.app')
+  ) {
+    // Root domain or Vercel preview domain access without explicit header: proceed as root
+    return next();
+  }
+
+  // Check if host is a subdomain of rootDomain
+  if (rootDomain !== 'localhost' && host.endsWith(`.${rootDomain}`)) {
+    const slug = host.replace(`.${rootDomain}`, '');
+    if (!slug || slug === 'admin' || slug === 'www') {
       return next();
     }
-    slug = host.replace(`.${rootDomain}`, '');
-  }
-
-  if (!slug) {
-    return next(new AppError('Tenant slug could not be determined', 400, 'BAD_REQUEST'));
-  }
-
-  try {
-    const school = await prisma.school.findUnique({
-      where: { slug },
-      select: { id: true, slug: true, name: true, logoUrl: true },
-    });
-    if (!school) {
-      return next(new AppError('Tenant not found', 404, 'TENANT_NOT_FOUND'));
+    try {
+      const school = await prisma.school.findUnique({
+        where: { slug },
+        select: { id: true, slug: true, name: true, logoUrl: true },
+      });
+      if (!school) {
+        return next(new AppError('Tenant not found', 404, 'TENANT_NOT_FOUND'));
+      }
+      req.tenant = {
+        id: school.id,
+        slug: school.slug ?? slug,
+        name: school.name,
+        logoUrl: school.logoUrl ?? undefined,
+      };
+      return next();
+    } catch (err) {
+      return next(new AppError('Tenant resolution error', 500, 'TENANT_ERROR'));
     }
-    req.tenant = {
-      id: school.id,
-      slug: school.slug ?? slug,
-      name: school.name,
-      logoUrl: school.logoUrl ?? undefined,
-    };
-    next();
-  } catch (err) {
-    next(new AppError('Tenant resolution error', 500, 'TENANT_ERROR'));
   }
+
+  // Default fallback: allow through to let requireTenant guard protected routes
+  return next();
 }
