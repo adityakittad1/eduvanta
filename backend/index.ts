@@ -5,6 +5,10 @@ import { prisma } from './src/lib/prisma';
 import { createApp } from './src/app';
 
 const PORT = env.PORT;
+const app = createApp();
+
+// Export app instance for serverless runtime (Vercel Express Service)
+export default app;
 
 async function main() {
   // Verify database connection
@@ -15,8 +19,6 @@ async function main() {
     logger.error('Failed to connect to database', { error });
     process.exit(1);
   }
-
-  const app = createApp();
 
   const server = app.listen(PORT, () => {
     logger.info(`ZP School ERP API running on port ${PORT}`, {
@@ -39,7 +41,10 @@ async function main() {
   process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
-main().catch((error) => {
-  logger.error('Fatal error during startup', { error });
-  process.exit(1);
-});
+// In standalone mode (local dev, Docker), listen on PORT. In Vercel, app is invoked serverlessly.
+if (!process.env.VERCEL) {
+  main().catch((error) => {
+    logger.error('Fatal error during startup', { error });
+    process.exit(1);
+  });
+}
