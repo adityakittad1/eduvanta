@@ -94,30 +94,32 @@ export function createApp(): Application {
   app.use(tenantResolver);
   // requireTenant is applied explicitly to routes that need it, not globally.
 
-  // ─── API Routes ──────────────────────────────────────────
-  app.use('/api/v1/health', healthRouter);
-  app.use('/api/v1/auth', authRouter); // auth.controller handles its own tenant requirements
-  app.use('/api/v1/schools', schoolsRouter); // SuperAdmin route, handled inside
-  app.use('/api/v1/users', requireTenant, usersRouter);
-  app.use('/api/v1/profile', requireTenant, profileRouter);
-  app.use('/api/v1/students', requireTenant, studentsRouter);
-  app.use('/api/v1/teachers', requireTenant, teachersRouter);
-  app.use('/api/v1/classes', requireTenant, classesRouter);
-  app.use('/api/v1/attendance', requireTenant, attendanceRouter);
-  app.use('/api/v1/academics', requireTenant, academicsRouter);
-  app.use('/api/v1/early-warning', requireTenant, earlyWarningRouter);
-  app.use('/api/v1/quizzes', requireTenant, quizzesRouter);
-  app.use('/api/v1/notices', requireTenant, noticesRouter);
-  app.use('/api/v1/resources', requireTenant, resourcesRouter);
-  app.use('/api/v1/tc', requireTenant, tcRouter);
-  app.use('/api/v1/tc-templates', requireTenant, tcTemplateRouter);
-  app.use('/api/v1/gallery', requireTenant, galleryRouter);
-  app.use('/api/v1/school-profile', requireTenant, schoolProfileRouter);
-  app.use('/api/v1/ai', requireTenant, aiRouter);
-  app.use('/api/v1/reports', requireTenant, reportsRouter);
-  app.use('/api/v1/upload', uploadRouter);
-  // Public website API — no authentication required
-  app.use('/api/v1/public', publicRouter); // publicRouter handles its own logic
+  // ─── API Routes (Supports both /api/v1 and /v1 for Vercel Services prefixing) ──
+  const apiPrefixes = ['/api/v1', '/v1'];
+  for (const prefix of apiPrefixes) {
+    app.use(`${prefix}/health`, healthRouter);
+    app.use(`${prefix}/auth`, authRouter); // auth.controller handles its own tenant requirements
+    app.use(`${prefix}/schools`, schoolsRouter); // SuperAdmin route, handled inside
+    app.use(`${prefix}/users`, requireTenant, usersRouter);
+    app.use(`${prefix}/profile`, requireTenant, profileRouter);
+    app.use(`${prefix}/students`, requireTenant, studentsRouter);
+    app.use(`${prefix}/teachers`, requireTenant, teachersRouter);
+    app.use(`${prefix}/classes`, requireTenant, classesRouter);
+    app.use(`${prefix}/attendance`, requireTenant, attendanceRouter);
+    app.use(`${prefix}/academics`, requireTenant, academicsRouter);
+    app.use(`${prefix}/early-warning`, requireTenant, earlyWarningRouter);
+    app.use(`${prefix}/quizzes`, requireTenant, quizzesRouter);
+    app.use(`${prefix}/notices`, requireTenant, noticesRouter);
+    app.use(`${prefix}/resources`, requireTenant, resourcesRouter);
+    app.use(`${prefix}/tc`, requireTenant, tcRouter);
+    app.use(`${prefix}/tc-templates`, requireTenant, tcTemplateRouter);
+    app.use(`${prefix}/gallery`, requireTenant, galleryRouter);
+    app.use(`${prefix}/school-profile`, requireTenant, schoolProfileRouter);
+    app.use(`${prefix}/ai`, requireTenant, aiRouter);
+    app.use(`${prefix}/reports`, requireTenant, reportsRouter);
+    app.use(`${prefix}/upload`, uploadRouter);
+    app.use(`${prefix}/public`, publicRouter); // publicRouter handles its own logic
+  }
 
   // ─── 404 & Error Handling ────────────────────────────────
   app.use(notFound);
