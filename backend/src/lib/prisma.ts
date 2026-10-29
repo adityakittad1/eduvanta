@@ -28,6 +28,6 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
-}
+// Cache client on globalThis to prevent connection exhaustion in serverless functions
+globalForPrisma.prisma = prisma;
+

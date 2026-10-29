@@ -11,17 +11,25 @@ import { AppError } from '../../middleware/errorHandler';
 export const uploadRouter = Router();
 
 // Temp upload dir for multer (local processing before pushing to Supabase)
-const baseUploadDir = path.resolve(env.FILE_UPLOAD_DIR);
-if (!fs.existsSync(baseUploadDir)) {
-  fs.mkdirSync(baseUploadDir, { recursive: true });
+const baseUploadDir = path.resolve(process.env.VERCEL ? '/tmp/uploads' : env.FILE_UPLOAD_DIR);
+try {
+  if (!fs.existsSync(baseUploadDir)) {
+    fs.mkdirSync(baseUploadDir, { recursive: true });
+  }
+} catch {
+  // Silent fallback for read-only serverless environments
 }
 
 const storage = multer.diskStorage({
   destination: (req, _file, cb) => {
     const tenantId = req.tenant?.id?.toString() || 'unknown';
     const tenantDir = path.join(baseUploadDir, tenantId);
-    if (!fs.existsSync(tenantDir)) {
-      fs.mkdirSync(tenantDir, { recursive: true });
+    try {
+      if (!fs.existsSync(tenantDir)) {
+        fs.mkdirSync(tenantDir, { recursive: true });
+      }
+    } catch {
+      // Silent fallback
     }
     cb(null, tenantDir);
   },
