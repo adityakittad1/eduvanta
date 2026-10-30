@@ -8,7 +8,12 @@ const PORT = env.PORT;
 const app = createApp();
 
 // Export app instance for serverless runtime (Vercel Express Service)
+// Support both CommonJS (module.exports = app) and ESM (exports.default = app)
 export default app;
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = app;
+  module.exports.default = app;
+}
 
 async function main() {
   // Verify database connection
