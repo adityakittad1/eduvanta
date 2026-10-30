@@ -11,7 +11,8 @@ import { AppError } from '../../middleware/errorHandler';
 export const uploadRouter = Router();
 
 // Temp upload dir for multer (local processing before pushing to Supabase)
-const baseUploadDir = path.resolve(process.env.VERCEL ? '/tmp/uploads' : env.FILE_UPLOAD_DIR);
+const isServerlessEnv = Boolean(process.env.VERCEL || process.env.VERCEL_ENV || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT);
+const baseUploadDir = path.resolve(isServerlessEnv ? '/tmp/uploads' : env.FILE_UPLOAD_DIR);
 try {
   if (!fs.existsSync(baseUploadDir)) {
     fs.mkdirSync(baseUploadDir, { recursive: true });

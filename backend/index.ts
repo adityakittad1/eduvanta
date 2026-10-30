@@ -16,8 +16,7 @@ async function main() {
     await prisma.$connect();
     logger.info('Database connected successfully');
   } catch (error) {
-    logger.error('Failed to connect to database', { error });
-    process.exit(1);
+    logger.warn('Initial database connection failed — queries will connect on demand', { error });
   }
 
   const server = app.listen(PORT, () => {
@@ -41,10 +40,22 @@ async function main() {
   process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
-// In standalone mode (local dev, Docker), listen on PORT. In Vercel, app is invoked serverlessly.
-if (!process.env.VERCEL) {
+// Only start standalone server if executed directly (e.g. node index.js or tsx index.ts).
+// When imported by Vercel serverless functions, require.main !== module and isServerless is true,
+// so main() is never invoked and the app is handled cleanly by Vercel's serverless wrapper.
+const isDirectExecution = typeof require !== 'undefined' && require.main === module;
+const isServerless =
+  Boolean(process.env.VERCEL) ||
+  Boolean(process.env.VERCEL_ENV) ||
+  Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) ||
+  Boolean(process.env.LAMBDA_TASK_ROOT) ||
+  Boolean(process.env.NOW_REGION) ||
+  !isDirectExecution;
+
+if (isDirectExecution && !isServerless) {
   main().catch((error) => {
     logger.error('Fatal error during startup', { error });
     process.exit(1);
   });
 }
+

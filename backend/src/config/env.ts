@@ -20,7 +20,14 @@ const envSchema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.preprocess(emptyToUndefined, z.string().default('15m')),
   JWT_REFRESH_EXPIRES_IN: z.preprocess(emptyToUndefined, z.string().default('7d')),
   FRONTEND_URL: z.preprocess(cleanUrl, z.string().url().default('http://localhost:5173')),
-  FILE_UPLOAD_DIR: z.preprocess(emptyToUndefined, z.string().default(process.env.VERCEL ? '/tmp/uploads' : './uploads')),
+  FILE_UPLOAD_DIR: z.preprocess(
+    emptyToUndefined,
+    z.string().default(
+      process.env.VERCEL || process.env.VERCEL_ENV || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT
+        ? '/tmp/uploads'
+        : './uploads'
+    )
+  ),
   FILE_UPLOAD_MAX_SIZE_MB: z.coerce.number().default(50),
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug']).default('info'),
   // AI
