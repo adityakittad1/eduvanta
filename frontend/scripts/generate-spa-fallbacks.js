@@ -23,6 +23,12 @@ const staticRoutes = [
 ];
 
 for (const route of staticRoutes) {
+  // Write both route.html (for cleanUrls / exact match) and route/index.html (for directory match)
+  const htmlFile = path.join(distDir, `${route}.html`);
+  const parentOfHtml = path.dirname(htmlFile);
+  fs.mkdirSync(parentOfHtml, { recursive: true });
+  fs.writeFileSync(htmlFile, indexContent);
+
   const targetDir = path.join(distDir, route);
   fs.mkdirSync(targetDir, { recursive: true });
   fs.writeFileSync(path.join(targetDir, 'index.html'), indexContent);
