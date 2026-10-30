@@ -1,8 +1,17 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
-import { prisma } from '../../lib/prisma';
 import { AppError } from '../../middleware/errorHandler';
 import { CreateStudentInput, UpdateStudentInput } from './students.schema';
+import {
+  dbGetStudents,
+  dbGetStudentById,
+  dbFindStudentByAdmission,
+  dbGetSchoolById,
+  dbFindUserByEmail,
+  dbCreateUser,
+  dbCreateStudent,
+  dbUpdateStudent,
+} from '../../lib/dataDb';
 
 export async function getStudents(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -15,24 +24,12 @@ export async function getStudents(req: Request, res: Response, next: NextFunctio
 
     const classId = req.query.classId as string | undefined;
 
-    const where = {
+    const { students, total } = await dbGetStudents({
       schoolId,
-      ...(classId === 'null' ? { classId: null } : classId ? { classId } : {}),
-    };
-
-    const [students, total] = await Promise.all([
-      prisma.student.findMany({
-        where,
-        include: {
-          class: true,
-          user: { select: { email: true, isActive: true } }
-        },
-        skip,
-        take: limit,
-        orderBy: { firstName: 'asc' },
-      }),
-      prisma.student.count({ where }),
-    ]);
+      classId,
+      skip,
+      take: limit,
+    });
 
     res.json({
       success: true,
@@ -41,7 +38,7 @@ export async function getStudents(req: Request, res: Response, next: NextFunctio
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / limit) || 1,
       },
     });
   } catch (error) {
@@ -56,19 +53,9 @@ export async function getStudentById(req: Request, res: Response, next: NextFunc
 
     if (!schoolId) throw new AppError('No school context', 400, 'BAD_REQUEST');
 
-    const student = await prisma.student.findUnique({
-      where: { id: studentId },
-      include: {
-        class: true,
-        user: { select: { email: true, isActive: true } },
-        earlyWarningFlags: {
-          where: { isResolved: false }
-        },
-        // In future phases: attendanceRecords, academicRecords, quizAttempts will be joined or fetched via specialized routes
-      }
-    });
+    const student = await dbGetStudentById(studentId, schoolId);
 
-    if (!student || student.schoolId !== schoolId) {
+    if (!student) {
       throw new AppError('Student not found', 404, 'NOT_FOUND');
     }
 
@@ -87,14 +74,12 @@ export async function createStudent(req: Request, res: Response, next: NextFunct
     const data = req.body as CreateStudentInput;
 
     // Check if admission number already exists in this school
-    const existingStudent = await prisma.student.findUnique({
-      where: { schoolId_admissionNumber: { schoolId, admissionNumber: data.admissionNumber } }
-    });
+    const existingStudent = await dbFindStudentByAdmission(schoolId, data.admissionNumber);
     if (existingStudent) {
       throw new AppError('Admission number already in use at this school', 400, 'BAD_REQUEST');
     }
 
-    const school = await prisma.school.findUnique({ where: { id: schoolId } });
+    const school = await dbGetSchoolById(schoolId);
     if (!school) throw new AppError('School not found', 404, 'NOT_FOUND');
     const schoolSlug = school.slug ? school.slug.replace(/-/g, '').toLowerCase() : 'school';
 
@@ -109,7 +94,7 @@ export async function createStudent(req: Request, res: Response, next: NextFunct
       while (!isUnique) {
         const suffixStr = String(suffix).padStart(3, '0');
         emailToUse = `${baseEmail}${suffixStr}@eduvanta.student`;
-        const exists = await prisma.user.findUnique({ where: { email: emailToUse } });
+        const exists = await dbFindUserByEmail(emailToUse);
         if (!exists) {
           isUnique = true;
         } else {
@@ -117,7 +102,7 @@ export async function createStudent(req: Request, res: Response, next: NextFunct
         }
       }
     } else {
-      const existingUser = await prisma.user.findUnique({ where: { email: emailToUse } });
+      const existingUser = await dbFindUserByEmail(emailToUse);
       if (existingUser) {
         throw new AppError('This email is already associated with another account', 400, 'DUPLICATE_EMAIL');
       }
@@ -125,35 +110,27 @@ export async function createStudent(req: Request, res: Response, next: NextFunct
 
     // Default password: Student@123 — must be changed on first login (future enforcement)
     const passwordHash = await bcrypt.hash('Student@123', 10);
-    const user = await prisma.user.create({
-      data: {
-        email: emailToUse,
-        name: `${data.firstName} ${data.lastName}`.trim(), // Store display name
-        passwordHash,
-        role: 'STUDENT',
-        schoolId,  // ALWAYS the authenticated school — never from client
-      }
+    const user = await dbCreateUser({
+      email: emailToUse,
+      name: `${data.firstName} ${data.lastName}`.trim(), // Store display name
+      passwordHash,
+      role: 'STUDENT',
+      schoolId,  // ALWAYS the authenticated school — never from client
     });
 
-    const student = await prisma.student.create({
-      data: {
-        schoolId,  // ALWAYS from authenticated context
-        userId: user.id,
-        admissionNumber: data.admissionNumber,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
-        gender: data.gender,
-        address: data.address || null,
-        guardianName: data.guardianName || null,
-        guardianPhone: data.guardianPhone || null,
-        academicYear: data.academicYear,
-        classId: data.classId || null,
-      },
-      include: {
-        user: { select: { email: true } },
-        class: true
-      }
+    const student = await dbCreateStudent({
+      schoolId,  // ALWAYS from authenticated context
+      userId: user.id,
+      admissionNumber: data.admissionNumber,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
+      gender: data.gender,
+      address: data.address || null,
+      guardianName: data.guardianName || null,
+      guardianPhone: data.guardianPhone || null,
+      academicYear: data.academicYear,
+      classId: data.classId || null,
     });
 
     res.status(201).json({ success: true, data: student });
@@ -170,26 +147,15 @@ export async function updateStudent(req: Request, res: Response, next: NextFunct
 
     const data = req.body as UpdateStudentInput;
 
-    const existingStudent = await prisma.student.findUnique({ where: { id: studentId } });
-    if (!existingStudent || existingStudent.schoolId !== schoolId) {
+    const existingStudent = await dbGetStudentById(studentId, schoolId);
+    if (!existingStudent) {
       throw new AppError('Student not found', 404, 'NOT_FOUND');
     }
 
-    const student = await prisma.student.update({
-      where: { id: studentId },
-      data: {
-        ...data,
-        dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
-        classId: data.classId === '' ? null : data.classId,
-      },
-      include: {
-        user: { select: { email: true } },
-        class: true
-      }
-    });
-
+    const student = await dbUpdateStudent(studentId, schoolId, data);
     res.json({ success: true, data: student });
   } catch (error) {
     next(error);
   }
 }
+

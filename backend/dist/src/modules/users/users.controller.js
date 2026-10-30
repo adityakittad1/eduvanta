@@ -8,51 +8,34 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const prisma_1 = require("../../lib/prisma");
 const errorHandler_1 = require("../../middleware/errorHandler");
 const logger_1 = require("../../lib/logger");
+const dataDb_1 = require("../../lib/dataDb");
 async function getAllUsers(req, res, next) {
     try {
         const { page = '1', limit = '10', search = '', role } = req.query;
         const pageNum = parseInt(page, 10);
         const limitNum = parseInt(limit, 10);
         const skip = (pageNum - 1) * limitNum;
-        const where = {};
+        let schoolId = undefined;
+        let allowedRoles = undefined;
         // Tenancy Check
         if (req.user?.role !== 'SUPER_ADMIN') {
-            where.schoolId = req.tenant.id;
-            where.role = { in: ['TEACHER', 'STUDENT'] }; // Principals can only see teachers and students
+            schoolId = req.tenant.id;
+            allowedRoles = ['TEACHER', 'STUDENT']; // Principals can only see teachers and students
         }
-        if (search) {
-            where.email = { contains: search, mode: 'insensitive' };
-        }
-        if (role) {
-            // If a non-SUPER_ADMIN tries to filter by SUPER_ADMIN or PRINCIPAL, ignore or restrict
-            if (req.user?.role !== 'SUPER_ADMIN' && ['SUPER_ADMIN', 'PRINCIPAL'].includes(role)) {
-                where.role = 'TEACHER'; // Fallback to safe
-            }
-            else {
-                where.role = role;
+        let roleFilter = role;
+        if (roleFilter) {
+            if (req.user?.role !== 'SUPER_ADMIN' && ['SUPER_ADMIN', 'PRINCIPAL'].includes(roleFilter)) {
+                roleFilter = 'TEACHER'; // Fallback to safe
             }
         }
-        const [users, total] = await Promise.all([
-            prisma_1.prisma.user.findMany({
-                where,
-                skip,
-                take: limitNum,
-                orderBy: { createdAt: 'desc' },
-                select: {
-                    id: true,
-                    email: true,
-                    name: true,
-                    role: true,
-                    schoolId: true,
-                    isActive: true,
-                    createdAt: true,
-                    school: {
-                        select: { name: true }
-                    }
-                }
-            }),
-            prisma_1.prisma.user.count({ where }),
-        ]);
+        const { users, total } = await (0, dataDb_1.dbGetAllUsers)({
+            schoolId,
+            allowedRoles,
+            role: roleFilter,
+            search: search || undefined,
+            skip,
+            take: limitNum,
+        });
         res.json({
             success: true,
             data: users,
@@ -60,7 +43,7 @@ async function getAllUsers(req, res, next) {
                 total,
                 page: pageNum,
                 limit: limitNum,
-                totalPages: Math.ceil(total / limitNum),
+                totalPages: Math.ceil(total / limitNum) || 1,
             },
         });
     }
@@ -90,50 +73,36 @@ async function createUser(req, res, next) {
         }
         let emailToUse = data.email || '';
         if (!emailToUse && data.schoolId) {
-            const school = await prisma_1.prisma.school.findUnique({ where: { id: data.schoolId } });
+            const school = await (0, dataDb_1.dbGetSchoolById)(data.schoolId);
             if (school) {
                 const schoolSlug = school.slug ? school.slug.replace(/-/g, '').toLowerCase() : 'school';
                 if (data.role === 'PRINCIPAL') {
                     emailToUse = `principal.${schoolSlug}@eduvanta.local`;
                 }
                 else if (data.role === 'TEACHER') {
-                    emailToUse = `teacher.${data.name.replace(/\s+/g, '.').toLowerCase()}.${schoolSlug}@eduvanta.local`;
+                    emailToUse = `teacher.${data.name?.replace(/\s+/g, '.').toLowerCase() || 'staff'}.${schoolSlug}@eduvanta.local`;
                 }
                 else {
-                    emailToUse = `${data.role.toLowerCase()}.${data.name.replace(/\s+/g, '.').toLowerCase()}.${schoolSlug}@eduvanta.local`;
+                    emailToUse = `${data.role.toLowerCase()}.${data.name?.replace(/\s+/g, '.').toLowerCase() || 'user'}.${schoolSlug}@eduvanta.local`;
                 }
             }
         }
         else if (!emailToUse) {
             throw new errorHandler_1.AppError('Email is required if school is not provided', 400, 'BAD_REQUEST');
         }
-        const existingUser = await prisma_1.prisma.user.findUnique({
-            where: { email: emailToUse }
-        });
+        const existingUser = await (0, dataDb_1.dbFindUserByEmail)(emailToUse);
         if (existingUser) {
             throw new errorHandler_1.AppError('A user with this email already exists. Please use a different email or manage the existing account.', 400, 'DUPLICATE_EMAIL');
         }
         const passwordToUse = data.password || 'Eduvanta@123';
         const passwordHash = await bcryptjs_1.default.hash(passwordToUse, 10);
-        const user = await prisma_1.prisma.user.create({
-            data: {
-                email: emailToUse,
-                name: data.name || null,
-                passwordHash,
-                role: data.role,
-                schoolId: data.schoolId || null,
-                isActive: data.isActive ?? true,
-            },
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                role: true,
-                schoolId: true,
-                isActive: true,
-                createdAt: true,
-                school: { select: { name: true } },
-            }
+        const user = await (0, dataDb_1.dbCreateUser)({
+            email: emailToUse,
+            name: data.name || null,
+            passwordHash,
+            role: data.role,
+            schoolId: data.schoolId || null,
+            isActive: data.isActive ?? true,
         });
         logger_1.logger.info(`User created: ${user.id} (${user.role}) name=${user.name}`, { createdBy: req.user?.id });
         res.status(201).json({ success: true, data: user });

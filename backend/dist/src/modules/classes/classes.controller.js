@@ -3,23 +3,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.assignStudents = exports.assignTeacher = exports.createSubject = exports.createClass = exports.getClassById = exports.getClasses = void 0;
 const prisma_1 = require("../../lib/prisma");
 const errorHandler_1 = require("../../middleware/errorHandler");
+const dataDb_1 = require("../../lib/dataDb");
 async function getClasses(req, res, next) {
     try {
         const schoolId = req.tenant.id;
         if (!schoolId)
             throw new errorHandler_1.AppError('No school context', 400, 'BAD_REQUEST');
-        const classes = await prisma_1.prisma.class.findMany({
-            where: { schoolId },
-            include: {
-                _count: {
-                    select: { students: true, subjects: true }
-                }
-            },
-            orderBy: [
-                { name: 'asc' },
-                { division: 'asc' }
-            ],
-        });
+        const classes = await (0, dataDb_1.dbGetClasses)(schoolId);
         res.json({ success: true, data: classes });
     }
     catch (error) {
@@ -33,25 +23,8 @@ async function getClassById(req, res, next) {
         const classId = req.params.id;
         if (!schoolId)
             throw new errorHandler_1.AppError('No school context', 400, 'BAD_REQUEST');
-        const classRecord = await prisma_1.prisma.class.findUnique({
-            where: { id: classId },
-            include: {
-                students: {
-                    orderBy: { firstName: 'asc' }
-                },
-                subjects: {
-                    include: {
-                        teacherClassSubjects: {
-                            include: {
-                                teacher: true
-                            }
-                        }
-                    },
-                    orderBy: { name: 'asc' }
-                }
-            }
-        });
-        if (!classRecord || classRecord.schoolId !== schoolId) {
+        const classRecord = await (0, dataDb_1.dbGetClassById)(classId, schoolId);
+        if (!classRecord) {
             throw new errorHandler_1.AppError('Class not found', 404, 'NOT_FOUND');
         }
         res.json({ success: true, data: classRecord });

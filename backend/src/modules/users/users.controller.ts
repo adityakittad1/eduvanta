@@ -5,6 +5,8 @@ import { AppError } from '../../middleware/errorHandler';
 import { CreateUserInput, UpdateUserInput } from './users.schema';
 import { logger } from '../../lib/logger';
 
+import { dbGetAllUsers, dbFindUserByEmail, dbCreateUser, dbGetSchoolById } from '../../lib/dataDb';
+
 export async function getAllUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const { page = '1', limit = '10', search = '', role } = req.query;
@@ -13,48 +15,30 @@ export async function getAllUsers(req: Request, res: Response, next: NextFunctio
     const limitNum = parseInt(limit as string, 10);
     const skip = (pageNum - 1) * limitNum;
 
-    const where: any = {};
+    let schoolId: string | undefined = undefined;
+    let allowedRoles: string[] | undefined = undefined;
 
     // Tenancy Check
     if (req.user?.role !== 'SUPER_ADMIN') {
-      where.schoolId = req.tenant!.id;
-      where.role = { in: ['TEACHER', 'STUDENT'] }; // Principals can only see teachers and students
+      schoolId = req.tenant!.id;
+      allowedRoles = ['TEACHER', 'STUDENT']; // Principals can only see teachers and students
     }
 
-    if (search) {
-      where.email = { contains: search as string, mode: 'insensitive' };
-    }
-
-    if (role) {
-      // If a non-SUPER_ADMIN tries to filter by SUPER_ADMIN or PRINCIPAL, ignore or restrict
-      if (req.user?.role !== 'SUPER_ADMIN' && ['SUPER_ADMIN', 'PRINCIPAL'].includes(role as string)) {
-        where.role = 'TEACHER'; // Fallback to safe
-      } else {
-        where.role = role;
+    let roleFilter = role as string | undefined;
+    if (roleFilter) {
+      if (req.user?.role !== 'SUPER_ADMIN' && ['SUPER_ADMIN', 'PRINCIPAL'].includes(roleFilter)) {
+        roleFilter = 'TEACHER'; // Fallback to safe
       }
     }
 
-    const [users, total] = await Promise.all([
-      prisma.user.findMany({
-        where,
-        skip,
-        take: limitNum,
-        orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          schoolId: true,
-          isActive: true,
-          createdAt: true,
-          school: {
-            select: { name: true }
-          }
-        }
-      }),
-      prisma.user.count({ where }),
-    ]);
+    const { users, total } = await dbGetAllUsers({
+      schoolId,
+      allowedRoles,
+      role: roleFilter,
+      search: (search as string) || undefined,
+      skip,
+      take: limitNum,
+    });
 
     res.json({
       success: true,
@@ -63,7 +47,7 @@ export async function getAllUsers(req: Request, res: Response, next: NextFunctio
         total,
         page: pageNum,
         limit: limitNum,
-        totalPages: Math.ceil(total / limitNum),
+        totalPages: Math.ceil(total / limitNum) || 1,
       },
     });
   } catch (error) {
@@ -93,25 +77,22 @@ export async function createUser(req: Request, res: Response, next: NextFunction
 
     let emailToUse = data.email || '';
     if (!emailToUse && data.schoolId) {
-      const school = await prisma.school.findUnique({ where: { id: data.schoolId } });
+      const school = await dbGetSchoolById(data.schoolId);
       if (school) {
         const schoolSlug = school.slug ? school.slug.replace(/-/g, '').toLowerCase() : 'school';
         if (data.role === 'PRINCIPAL') {
           emailToUse = `principal.${schoolSlug}@eduvanta.local`;
         } else if (data.role === 'TEACHER') {
-          emailToUse = `teacher.${data.name.replace(/\s+/g, '.').toLowerCase()}.${schoolSlug}@eduvanta.local`;
+          emailToUse = `teacher.${data.name?.replace(/\s+/g, '.').toLowerCase() || 'staff'}.${schoolSlug}@eduvanta.local`;
         } else {
-          emailToUse = `${data.role.toLowerCase()}.${data.name.replace(/\s+/g, '.').toLowerCase()}.${schoolSlug}@eduvanta.local`;
+          emailToUse = `${data.role.toLowerCase()}.${data.name?.replace(/\s+/g, '.').toLowerCase() || 'user'}.${schoolSlug}@eduvanta.local`;
         }
       }
     } else if (!emailToUse) {
       throw new AppError('Email is required if school is not provided', 400, 'BAD_REQUEST');
     }
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email: emailToUse }
-    });
-
+    const existingUser = await dbFindUserByEmail(emailToUse);
     if (existingUser) {
       throw new AppError('A user with this email already exists. Please use a different email or manage the existing account.', 400, 'DUPLICATE_EMAIL');
     }
@@ -119,25 +100,13 @@ export async function createUser(req: Request, res: Response, next: NextFunction
     const passwordToUse = data.password || 'Eduvanta@123';
     const passwordHash = await bcrypt.hash(passwordToUse, 10);
 
-    const user = await prisma.user.create({
-      data: {
-        email: emailToUse,
-        name: data.name || null,
-        passwordHash,
-        role: data.role,
-        schoolId: data.schoolId || null,
-        isActive: data.isActive ?? true,
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        schoolId: true,
-        isActive: true,
-        createdAt: true,
-        school: { select: { name: true } },
-      }
+    const user = await dbCreateUser({
+      email: emailToUse,
+      name: data.name || null,
+      passwordHash,
+      role: data.role,
+      schoolId: data.schoolId || null,
+      isActive: data.isActive ?? true,
     });
 
     logger.info(`User created: ${user.id} (${user.role}) name=${user.name}`, { createdBy: req.user?.id });

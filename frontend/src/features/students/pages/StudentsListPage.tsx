@@ -40,15 +40,18 @@ export function StudentsListPage() {
     
     const rawDob = formData.get('dateOfBirth') as string;
     
+    const rawGender = formData.get('gender') as string;
     const data = {
-      admissionNumber: formData.get('admissionNumber') as string,
-      firstName: formData.get('firstName') as string,
-      lastName: formData.get('lastName') as string,
-      gender: formData.get('gender') as 'MALE' | 'FEMALE' | 'OTHER',
+      admissionNumber: (formData.get('admissionNumber') as string)?.trim(),
+      firstName: (formData.get('firstName') as string)?.trim(),
+      lastName: (formData.get('lastName') as string)?.trim(),
+      gender: rawGender && ['MALE', 'FEMALE', 'OTHER'].includes(rawGender) 
+        ? (rawGender as 'MALE' | 'FEMALE' | 'OTHER') 
+        : undefined,
       dateOfBirth: rawDob ? new Date(rawDob).toISOString() : undefined,
-      email: formData.get('email') as string || undefined,
-      academicYear: formData.get('academicYear') as string,
-      classId: formData.get('classId') as string || undefined,
+      email: (formData.get('email') as string)?.trim() || undefined,
+      academicYear: (formData.get('academicYear') as string)?.trim(),
+      classId: (formData.get('classId') as string)?.trim() || undefined,
     };
 
     try {

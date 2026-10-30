@@ -3,24 +3,14 @@ import { prisma } from '../../lib/prisma';
 import { AppError } from '../../middleware/errorHandler';
 import { CreateClassInput, CreateSubjectInput, AssignTeacherInput, AssignStudentsInput } from './classes.schema';
 
+import { dbGetClasses, dbGetClassById } from '../../lib/dataDb';
+
 export async function getClasses(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const schoolId = req.tenant!.id;
     if (!schoolId) throw new AppError('No school context', 400, 'BAD_REQUEST');
 
-    const classes = await prisma.class.findMany({
-      where: { schoolId },
-      include: {
-        _count: {
-          select: { students: true, subjects: true }
-        }
-      },
-      orderBy: [
-        { name: 'asc' },
-        { division: 'asc' }
-      ],
-    });
-
+    const classes = await dbGetClasses(schoolId);
     res.json({ success: true, data: classes });
   } catch (error) {
     next(error);
@@ -34,26 +24,9 @@ export async function getClassById(req: Request, res: Response, next: NextFuncti
 
     if (!schoolId) throw new AppError('No school context', 400, 'BAD_REQUEST');
 
-    const classRecord = await prisma.class.findUnique({
-      where: { id: classId },
-      include: {
-        students: {
-          orderBy: { firstName: 'asc' }
-        },
-        subjects: {
-          include: {
-            teacherClassSubjects: {
-              include: {
-                teacher: true
-              }
-            }
-          },
-          orderBy: { name: 'asc' }
-        }
-      }
-    });
+    const classRecord = await dbGetClassById(classId, schoolId);
 
-    if (!classRecord || classRecord.schoolId !== schoolId) {
+    if (!classRecord) {
       throw new AppError('Class not found', 404, 'NOT_FOUND');
     }
 

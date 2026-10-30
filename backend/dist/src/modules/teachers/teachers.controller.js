@@ -7,6 +7,7 @@ exports.updateTeacher = exports.createTeacher = exports.getTeacherById = exports
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const prisma_1 = require("../../lib/prisma");
 const errorHandler_1 = require("../../middleware/errorHandler");
+const dataDb_1 = require("../../lib/dataDb");
 async function getTeachers(req, res, next) {
     try {
         const schoolId = req.tenant.id;
@@ -15,18 +16,11 @@ async function getTeachers(req, res, next) {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 50;
         const skip = (page - 1) * limit;
-        const [teachers, total] = await Promise.all([
-            prisma_1.prisma.teacher.findMany({
-                where: { schoolId },
-                include: {
-                    user: { select: { email: true, isActive: true } }
-                },
-                skip,
-                take: limit,
-                orderBy: { firstName: 'asc' },
-            }),
-            prisma_1.prisma.teacher.count({ where: { schoolId } }),
-        ]);
+        const { teachers, total } = await (0, dataDb_1.dbGetTeachers)({
+            schoolId,
+            skip,
+            take: limit,
+        });
         res.json({
             success: true,
             data: teachers,
@@ -34,7 +28,7 @@ async function getTeachers(req, res, next) {
                 total,
                 page,
                 limit,
-                totalPages: Math.ceil(total / limit),
+                totalPages: Math.ceil(total / limit) || 1,
             },
         });
     }
@@ -78,7 +72,7 @@ async function createTeacher(req, res, next) {
         if (!schoolId)
             throw new errorHandler_1.AppError('No school context', 400, 'BAD_REQUEST');
         const data = req.body;
-        const school = await prisma_1.prisma.school.findUnique({ where: { id: schoolId } });
+        const school = await (0, dataDb_1.dbGetSchoolById)(schoolId);
         if (!school)
             throw new errorHandler_1.AppError('School not found', 404, 'NOT_FOUND');
         const schoolSlug = school.slug ? school.slug.replace(/-/g, '').toLowerCase() : 'school';
@@ -92,7 +86,7 @@ async function createTeacher(req, res, next) {
             while (!isUnique) {
                 const suffixStr = suffix === 1 ? '' : String(suffix);
                 emailToUse = `${baseEmail}${suffixStr}@${schoolSlug}.eduvanta.teacher`;
-                const exists = await prisma_1.prisma.user.findUnique({ where: { email: emailToUse } });
+                const exists = await (0, dataDb_1.dbFindUserByEmail)(emailToUse);
                 if (!exists) {
                     isUnique = true;
                 }
@@ -102,37 +96,27 @@ async function createTeacher(req, res, next) {
             }
         }
         else {
-            const existingUser = await prisma_1.prisma.user.findUnique({ where: { email: emailToUse } });
+            const existingUser = await (0, dataDb_1.dbFindUserByEmail)(emailToUse);
             if (existingUser) {
                 throw new errorHandler_1.AppError('This email is already associated with another account', 400, 'DUPLICATE_EMAIL');
             }
         }
         // Default password: Teacher@123 — principal should communicate this to the teacher
         const passwordHash = await bcryptjs_1.default.hash('Teacher@123', 10);
-        // Create User and Teacher inside a transaction to ensure atomicity
-        const teacher = await prisma_1.prisma.$transaction(async (tx) => {
-            const user = await tx.user.create({
-                data: {
-                    email: emailToUse,
-                    name: `${data.firstName} ${data.lastName}`.trim(), // Store display name
-                    passwordHash,
-                    role: 'TEACHER',
-                    schoolId, // ALWAYS from authenticated context
-                }
-            });
-            return tx.teacher.create({
-                data: {
-                    schoolId, // ALWAYS from authenticated context
-                    userId: user.id,
-                    firstName: data.firstName,
-                    lastName: data.lastName,
-                    employeeId: data.employeeId || null,
-                    qualification: data.qualification || null,
-                },
-                include: {
-                    user: { select: { email: true, name: true } }
-                }
-            });
+        const user = await (0, dataDb_1.dbCreateUser)({
+            email: emailToUse,
+            name: `${data.firstName} ${data.lastName}`.trim(),
+            passwordHash,
+            role: 'TEACHER',
+            schoolId,
+        });
+        const teacher = await (0, dataDb_1.dbCreateTeacher)({
+            schoolId,
+            userId: user.id,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            employeeId: data.employeeId || null,
+            qualification: data.qualification || null,
         });
         res.status(201).json({ success: true, data: teacher });
     }

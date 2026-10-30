@@ -30,12 +30,13 @@ export function ManageSchoolsPage() {
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    const contactEmail = (formData.get('contactEmail') as string)?.trim();
     const data = {
-      name: formData.get('name') as string,
-      principalName: formData.get('principalName') as string,
-      contactEmail: formData.get('contactEmail') as string,
-      contactPhone: formData.get('contactPhone') as string,
-      address: formData.get('address') as string,
+      name: (formData.get('name') as string)?.trim(),
+      principalName: (formData.get('principalName') as string)?.trim() || undefined,
+      contactEmail: contactEmail || undefined,
+      contactPhone: (formData.get('contactPhone') as string)?.trim() || undefined,
+      address: (formData.get('address') as string)?.trim() || undefined,
     };
 
     try {
@@ -48,8 +49,9 @@ export function ManageSchoolsPage() {
       }
       setIsModalOpen(false);
       fetchSchools();
-    } catch (error) {
-      toast.error('Failed to save school');
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to save school';
+      toast.error(errorMsg);
     }
   };
 
