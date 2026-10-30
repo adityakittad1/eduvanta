@@ -1,4 +1,10 @@
 {
+  "name": "eduvanta-platform",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.78.0"
