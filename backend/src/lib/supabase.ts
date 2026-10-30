@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
 import { env } from '../config/env';
-// @ts-ignore
 import WebSocket from 'ws';
 
 // Polyfill WebSocket for Supabase Realtime in Node 18
