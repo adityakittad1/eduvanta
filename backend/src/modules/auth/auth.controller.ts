@@ -33,19 +33,27 @@ declare global {
   }
 }
 
+function cleanExpiresIn(val: string | undefined, fallback: string): string {
+  if (!val || typeof val !== 'string') return fallback;
+  const cleaned = val.replace(/^['"]|['"]$/g, '').trim();
+  return cleaned || fallback;
+}
+
 function generateAccessToken(user: AuthUser): string {
+  const expiresIn = cleanExpiresIn(env.JWT_ACCESS_EXPIRES_IN, '15m');
   return jwt.sign(
     { userId: user.id, role: user.role, schoolId: user.schoolId },
     env.JWT_ACCESS_SECRET,
-    { expiresIn: env.JWT_ACCESS_EXPIRES_IN as jwt.SignOptions['expiresIn'] }
+    { expiresIn: expiresIn as any }
   );
 }
 
 function generateRefreshToken(userId: string): string {
+  const expiresIn = cleanExpiresIn(env.JWT_REFRESH_EXPIRES_IN, '7d');
   return jwt.sign(
     { userId },
     env.JWT_REFRESH_SECRET,
-    { expiresIn: env.JWT_REFRESH_EXPIRES_IN as jwt.SignOptions['expiresIn'] }
+    { expiresIn: expiresIn as any }
   );
 }
 

@@ -11,11 +11,19 @@ const env_1 = require("../../config/env");
 const errorHandler_1 = require("../../middleware/errorHandler");
 const logger_1 = require("../../lib/logger");
 const authDb_1 = require("../../lib/authDb");
+function cleanExpiresIn(val, fallback) {
+    if (!val || typeof val !== 'string')
+        return fallback;
+    const cleaned = val.replace(/^['"]|['"]$/g, '').trim();
+    return cleaned || fallback;
+}
 function generateAccessToken(user) {
-    return jsonwebtoken_1.default.sign({ userId: user.id, role: user.role, schoolId: user.schoolId }, env_1.env.JWT_ACCESS_SECRET, { expiresIn: env_1.env.JWT_ACCESS_EXPIRES_IN });
+    const expiresIn = cleanExpiresIn(env_1.env.JWT_ACCESS_EXPIRES_IN, '15m');
+    return jsonwebtoken_1.default.sign({ userId: user.id, role: user.role, schoolId: user.schoolId }, env_1.env.JWT_ACCESS_SECRET, { expiresIn: expiresIn });
 }
 function generateRefreshToken(userId) {
-    return jsonwebtoken_1.default.sign({ userId }, env_1.env.JWT_REFRESH_SECRET, { expiresIn: env_1.env.JWT_REFRESH_EXPIRES_IN });
+    const expiresIn = cleanExpiresIn(env_1.env.JWT_REFRESH_EXPIRES_IN, '7d');
+    return jsonwebtoken_1.default.sign({ userId }, env_1.env.JWT_REFRESH_SECRET, { expiresIn: expiresIn });
 }
 async function login(req, res, next) {
     try {

@@ -11,14 +11,20 @@ const emptyToUndefined = (val: unknown) => {
   return val;
 };
 
+const cleanTimespan = (defaultVal: string) => (val: unknown) => {
+  if (!val || typeof val !== 'string') return defaultVal;
+  const cleaned = val.replace(/^['"]|['"]$/g, '').trim();
+  return cleaned || defaultVal;
+};
+
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(3000),
   DATABASE_URL: z.preprocess(emptyToUndefined, z.string().default('postgresql://user:pass@localhost:5432/testdb')),
   JWT_ACCESS_SECRET: z.preprocess(emptyToUndefined, z.string().default('test_secret_access_which_is_long_enough_123456')),
   JWT_REFRESH_SECRET: z.preprocess(emptyToUndefined, z.string().default('test_secret_refresh_which_is_long_enough_123456')),
-  JWT_ACCESS_EXPIRES_IN: z.preprocess(emptyToUndefined, z.string().default('15m')),
-  JWT_REFRESH_EXPIRES_IN: z.preprocess(emptyToUndefined, z.string().default('7d')),
+  JWT_ACCESS_EXPIRES_IN: z.preprocess(cleanTimespan('15m'), z.string().default('15m')),
+  JWT_REFRESH_EXPIRES_IN: z.preprocess(cleanTimespan('7d'), z.string().default('7d')),
   FRONTEND_URL: z.preprocess(cleanUrl, z.string().url().default('http://localhost:5173')),
   FILE_UPLOAD_DIR: z.preprocess(
     emptyToUndefined,

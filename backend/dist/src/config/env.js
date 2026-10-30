@@ -13,14 +13,20 @@ const emptyToUndefined = (val) => {
         return undefined;
     return val;
 };
+const cleanTimespan = (defaultVal) => (val) => {
+    if (!val || typeof val !== 'string')
+        return defaultVal;
+    const cleaned = val.replace(/^['"]|['"]$/g, '').trim();
+    return cleaned || defaultVal;
+};
 const envSchema = zod_1.z.object({
     NODE_ENV: zod_1.z.enum(['development', 'production', 'test']).default('development'),
     PORT: zod_1.z.coerce.number().default(3000),
     DATABASE_URL: zod_1.z.preprocess(emptyToUndefined, zod_1.z.string().default('postgresql://user:pass@localhost:5432/testdb')),
     JWT_ACCESS_SECRET: zod_1.z.preprocess(emptyToUndefined, zod_1.z.string().default('test_secret_access_which_is_long_enough_123456')),
     JWT_REFRESH_SECRET: zod_1.z.preprocess(emptyToUndefined, zod_1.z.string().default('test_secret_refresh_which_is_long_enough_123456')),
-    JWT_ACCESS_EXPIRES_IN: zod_1.z.preprocess(emptyToUndefined, zod_1.z.string().default('15m')),
-    JWT_REFRESH_EXPIRES_IN: zod_1.z.preprocess(emptyToUndefined, zod_1.z.string().default('7d')),
+    JWT_ACCESS_EXPIRES_IN: zod_1.z.preprocess(cleanTimespan('15m'), zod_1.z.string().default('15m')),
+    JWT_REFRESH_EXPIRES_IN: zod_1.z.preprocess(cleanTimespan('7d'), zod_1.z.string().default('7d')),
     FRONTEND_URL: zod_1.z.preprocess(cleanUrl, zod_1.z.string().url().default('http://localhost:5173')),
     FILE_UPLOAD_DIR: zod_1.z.preprocess(emptyToUndefined, zod_1.z.string().default(process.env.VERCEL || process.env.VERCEL_ENV || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.LAMBDA_TASK_ROOT
         ? '/tmp/uploads'
