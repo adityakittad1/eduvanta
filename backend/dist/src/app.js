@@ -9,6 +9,7 @@ const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const path_1 = __importDefault(require("path"));
 const env_1 = require("./config/env");
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const tenantResolver_1 = require("./middleware/tenantResolver");
 const requireTenant_1 = require("./middleware/requireTenant");
 const logger_1 = require("./lib/logger");
@@ -73,6 +74,7 @@ function createApp() {
     // ─── Body Parsers ────────────────────────────────────────
     app.use(express_1.default.json({ limit: '10mb' }));
     app.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
+    app.use((0, cookie_parser_1.default)());
     // ─── Request Logging ─────────────────────────────────────
     app.use((req, _res, next) => {
         logger_1.logger.info(`${req.method} ${req.path}`, {

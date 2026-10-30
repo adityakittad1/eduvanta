@@ -9,9 +9,11 @@ export class AppError extends Error {
 
   constructor(message: string, statusCode: number, code: string, isOperational = true) {
     super(message);
+    this.name = 'AppError';
     this.statusCode = statusCode;
     this.code = code;
     this.isOperational = isOperational;
+    Object.setPrototypeOf(this, AppError.prototype);
     Error.captureStackTrace(this, this.constructor);
   }
 }
@@ -43,20 +45,23 @@ export function errorHandler(
     return;
   }
 
-  // Known operational errors
-  if (err instanceof AppError) {
-    if (!err.isOperational) {
+  // Known operational errors (handles both instanceof and cross-module duck typing)
+  const isOperational = err instanceof AppError || ('statusCode' in err && 'code' in err);
+  if (isOperational) {
+    const statusCode = (err as any).statusCode || 500;
+    const code = (err as any).code || 'INTERNAL_ERROR';
+    if (!(err as any).isOperational && statusCode === 500) {
       logger.error('Non-operational error', { error: err.message, stack: err.stack });
     }
-    res.status(err.statusCode).json({
+    res.status(statusCode).json({
       success: false,
       message: err.message,
-      code: err.code,
+      code,
     });
     return;
   }
 
-  // Unknown errors — log full details, return generic message
+  // Unknown errors — log full details
   logger.error('Unhandled error', {
     error: err.message,
     stack: err.stack,
@@ -66,7 +71,7 @@ export function errorHandler(
 
   res.status(500).json({
     success: false,
-    message: 'An unexpected error occurred',
+    message: err.message || 'An unexpected error occurred',
     code: 'INTERNAL_ERROR',
   });
 }

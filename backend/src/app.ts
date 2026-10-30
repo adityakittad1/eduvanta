@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
 import { env } from './config/env';
+import cookieParser from 'cookie-parser';
 import { tenantResolver } from './middleware/tenantResolver';
 import { requireTenant } from './middleware/requireTenant';
 import { logger } from './lib/logger';
@@ -78,6 +79,7 @@ export function createApp(): Application {
   // ─── Body Parsers ────────────────────────────────────────
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  app.use(cookieParser());
 
   // ─── Request Logging ─────────────────────────────────────
   app.use((req, _res, next) => {

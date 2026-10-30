@@ -51,6 +51,8 @@ export interface AuthDbUserProfile {
         lastName: string;
     } | null;
 }
+export declare function isPrismaAvailable(): boolean;
+export declare function markPrismaFailure(): void;
 export declare function findUserForLogin(email: string): Promise<AuthDbUser | null>;
 export declare function findUserProfileById(userId: string): Promise<AuthDbUserProfile | null>;
 export declare function saveRefreshToken(userId: string, tokenHash: string, expiresAt: Date): Promise<void>;

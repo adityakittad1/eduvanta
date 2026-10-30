@@ -3,38 +3,51 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.listPublicSchools = exports.resolveSchoolBySlug = exports.revokeAllUserRefreshTokens = exports.revokeRefreshToken = exports.findValidRefreshTokens = exports.saveRefreshToken = exports.findUserProfileById = exports.findUserForLogin = void 0;
+exports.listPublicSchools = exports.resolveSchoolBySlug = exports.revokeAllUserRefreshTokens = exports.revokeRefreshToken = exports.findValidRefreshTokens = exports.saveRefreshToken = exports.findUserProfileById = exports.findUserForLogin = exports.markPrismaFailure = exports.isPrismaAvailable = void 0;
 const crypto_1 = __importDefault(require("crypto"));
 const prisma_1 = require("./prisma");
 const supabase_1 = require("./supabase");
 const logger_1 = require("./logger");
+let prismaDisabledUntil = 0;
+function isPrismaAvailable() {
+    return Date.now() > prismaDisabledUntil;
+}
+exports.isPrismaAvailable = isPrismaAvailable;
+function markPrismaFailure() {
+    // Cooldown for 30s before attempting Prisma again
+    prismaDisabledUntil = Date.now() + 30000;
+}
+exports.markPrismaFailure = markPrismaFailure;
 async function findUserForLogin(email) {
     const normalizedEmail = email.toLowerCase().trim();
-    // 1. Try Prisma first
-    try {
-        const user = await prisma_1.prisma.user.findUnique({
-            where: { email: normalizedEmail },
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                passwordHash: true,
-                role: true,
-                schoolId: true,
-                isActive: true,
-                school: {
-                    select: { id: true, name: true, logoUrl: true, isActive: true, slug: true },
+    // 1. Try Prisma first if healthy
+    if (isPrismaAvailable()) {
+        try {
+            const user = await prisma_1.prisma.user.findUnique({
+                where: { email: normalizedEmail },
+                select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                    passwordHash: true,
+                    role: true,
+                    schoolId: true,
+                    isActive: true,
+                    school: {
+                        select: { id: true, name: true, logoUrl: true, isActive: true, slug: true },
+                    },
+                    student: {
+                        select: { id: true },
+                    },
                 },
-                student: {
-                    select: { id: true },
-                },
-            },
-        });
-        if (user)
-            return user;
-    }
-    catch (err) {
-        logger_1.logger.warn('Prisma findUserForLogin failed, falling back to Supabase client', { error: err?.message });
+            });
+            if (user)
+                return user;
+        }
+        catch (err) {
+            markPrismaFailure();
+            logger_1.logger.warn('Prisma findUserForLogin failed, falling back to Supabase client', { error: err?.message });
+        }
     }
     // 2. Fallback to Supabase REST client
     if (supabase_1.supabase) {
@@ -81,45 +94,48 @@ async function findUserForLogin(email) {
 exports.findUserForLogin = findUserForLogin;
 async function findUserProfileById(userId) {
     // 1. Try Prisma first
-    try {
-        const user = await prisma_1.prisma.user.findUnique({
-            where: { id: userId },
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                role: true,
-                schoolId: true,
-                isActive: true,
-                createdAt: true,
-                school: {
-                    select: {
-                        id: true,
-                        name: true,
-                        logoUrl: true,
-                        slug: true,
-                        address: true,
-                        contactPhone: true,
-                        contactEmail: true,
-                        principalName: true,
-                        tagline: true,
-                        establishedYear: true,
-                        isPublicEnabled: true,
+    if (isPrismaAvailable()) {
+        try {
+            const user = await prisma_1.prisma.user.findUnique({
+                where: { id: userId },
+                select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                    role: true,
+                    schoolId: true,
+                    isActive: true,
+                    createdAt: true,
+                    school: {
+                        select: {
+                            id: true,
+                            name: true,
+                            logoUrl: true,
+                            slug: true,
+                            address: true,
+                            contactPhone: true,
+                            contactEmail: true,
+                            principalName: true,
+                            tagline: true,
+                            establishedYear: true,
+                            isPublicEnabled: true,
+                        },
+                    },
+                    student: {
+                        select: { id: true, firstName: true, lastName: true, classId: true },
+                    },
+                    teacher: {
+                        select: { id: true, firstName: true, lastName: true },
                     },
                 },
-                student: {
-                    select: { id: true, firstName: true, lastName: true, classId: true },
-                },
-                teacher: {
-                    select: { id: true, firstName: true, lastName: true },
-                },
-            },
-        });
-        if (user)
-            return user;
-    }
-    catch (err) {
-        logger_1.logger.warn('Prisma findUserProfileById failed, falling back to Supabase client', { error: err?.message });
+            });
+            if (user)
+                return user;
+        }
+        catch (err) {
+            markPrismaFailure();
+            logger_1.logger.warn('Prisma findUserProfileById failed, falling back to Supabase client', { error: err?.message });
+        }
     }
     // 2. Fallback to Supabase REST client
     if (supabase_1.supabase) {
@@ -188,18 +204,21 @@ async function findUserProfileById(userId) {
 exports.findUserProfileById = findUserProfileById;
 async function saveRefreshToken(userId, tokenHash, expiresAt) {
     // 1. Try Prisma first
-    try {
-        await prisma_1.prisma.refreshToken.create({
-            data: {
-                userId,
-                tokenHash,
-                expiresAt,
-            },
-        });
-        return;
-    }
-    catch (err) {
-        logger_1.logger.warn('Prisma saveRefreshToken failed, falling back to Supabase client', { error: err?.message });
+    if (isPrismaAvailable()) {
+        try {
+            await prisma_1.prisma.refreshToken.create({
+                data: {
+                    userId,
+                    tokenHash,
+                    expiresAt,
+                },
+            });
+            return;
+        }
+        catch (err) {
+            markPrismaFailure();
+            logger_1.logger.warn('Prisma saveRefreshToken failed, falling back to Supabase client', { error: err?.message });
+        }
     }
     // 2. Fallback to Supabase REST client
     if (supabase_1.supabase) {
@@ -220,20 +239,23 @@ async function saveRefreshToken(userId, tokenHash, expiresAt) {
 exports.saveRefreshToken = saveRefreshToken;
 async function findValidRefreshTokens(userId) {
     // 1. Try Prisma first
-    try {
-        const records = await prisma_1.prisma.refreshToken.findMany({
-            where: {
-                userId,
-                revokedAt: null,
-                expiresAt: { gt: new Date() },
-            },
-            select: { id: true, tokenHash: true },
-        });
-        if (records)
-            return records;
-    }
-    catch (err) {
-        logger_1.logger.warn('Prisma findValidRefreshTokens failed, falling back to Supabase client', { error: err?.message });
+    if (isPrismaAvailable()) {
+        try {
+            const records = await prisma_1.prisma.refreshToken.findMany({
+                where: {
+                    userId,
+                    revokedAt: null,
+                    expiresAt: { gt: new Date() },
+                },
+                select: { id: true, tokenHash: true },
+            });
+            if (records)
+                return records;
+        }
+        catch (err) {
+            markPrismaFailure();
+            logger_1.logger.warn('Prisma findValidRefreshTokens failed, falling back to Supabase client', { error: err?.message });
+        }
     }
     // 2. Fallback to Supabase REST client
     if (supabase_1.supabase) {
@@ -298,22 +320,25 @@ async function revokeAllUserRefreshTokens(userId) {
 }
 exports.revokeAllUserRefreshTokens = revokeAllUserRefreshTokens;
 async function resolveSchoolBySlug(slug) {
-    try {
-        const school = await prisma_1.prisma.school.findUnique({
-            where: { slug },
-            select: { id: true, slug: true, name: true, logoUrl: true },
-        });
-        if (school) {
-            return {
-                id: school.id,
-                slug: school.slug ?? slug,
-                name: school.name,
-                logoUrl: school.logoUrl ?? undefined,
-            };
+    if (isPrismaAvailable()) {
+        try {
+            const school = await prisma_1.prisma.school.findUnique({
+                where: { slug },
+                select: { id: true, slug: true, name: true, logoUrl: true },
+            });
+            if (school) {
+                return {
+                    id: school.id,
+                    slug: school.slug ?? slug,
+                    name: school.name,
+                    logoUrl: school.logoUrl ?? undefined,
+                };
+            }
         }
-    }
-    catch (err) {
-        logger_1.logger.warn('Prisma resolveSchoolBySlug failed, falling back to Supabase client', { error: err?.message });
+        catch (err) {
+            markPrismaFailure();
+            logger_1.logger.warn('Prisma resolveSchoolBySlug failed, falling back to Supabase client', { error: err?.message });
+        }
     }
     if (supabase_1.supabase) {
         try {
@@ -339,27 +364,30 @@ async function resolveSchoolBySlug(slug) {
 }
 exports.resolveSchoolBySlug = resolveSchoolBySlug;
 async function listPublicSchools() {
-    try {
-        const schools = await prisma_1.prisma.school.findMany({
-            where: { isActive: true, isPublicEnabled: true },
-            select: {
-                id: true,
-                name: true,
-                slug: true,
-                logoUrl: true,
-                tagline: true,
-                description: true,
-                address: true,
-                establishedYear: true,
-                principalName: true,
-            },
-            orderBy: { name: 'asc' },
-        });
-        if (schools && schools.length > 0)
-            return schools;
-    }
-    catch (err) {
-        logger_1.logger.warn('Prisma listPublicSchools failed, falling back to Supabase client', { error: err?.message });
+    if (isPrismaAvailable()) {
+        try {
+            const schools = await prisma_1.prisma.school.findMany({
+                where: { isActive: true, isPublicEnabled: true },
+                select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                    logoUrl: true,
+                    tagline: true,
+                    description: true,
+                    address: true,
+                    establishedYear: true,
+                    principalName: true,
+                },
+                orderBy: { name: 'asc' },
+            });
+            if (schools && schools.length > 0)
+                return schools;
+        }
+        catch (err) {
+            markPrismaFailure();
+            logger_1.logger.warn('Prisma listPublicSchools failed, falling back to Supabase client', { error: err?.message });
+        }
     }
     if (supabase_1.supabase) {
         try {

@@ -63,3 +63,32 @@ healthRouter.get('/', async (_req: Request, res: Response) => {
     environment: process.env.NODE_ENV ?? 'unknown',
   });
 });
+
+healthRouter.get('/auth-diag', async (_req: Request, res: Response) => {
+  const diag: Record<string, any> = {};
+  try {
+    const { findUserForLogin } = await import('../../lib/authDb');
+    const uAdmin = await findUserForLogin('admin@zpschoolerp.com');
+    diag.superAdmin = {
+      found: Boolean(uAdmin),
+      role: uAdmin?.role,
+      schoolId: uAdmin?.schoolId,
+      isActive: uAdmin?.isActive,
+      hasHash: Boolean(uAdmin?.passwordHash),
+    };
+
+    const uPrincipal = await findUserForLogin('shinde@gmail.com');
+    diag.principal = {
+      found: Boolean(uPrincipal),
+      role: uPrincipal?.role,
+      schoolId: uPrincipal?.schoolId,
+      schoolName: uPrincipal?.school?.name,
+      schoolSlug: uPrincipal?.school?.slug,
+      isActive: uPrincipal?.isActive,
+    };
+
+    res.json({ success: true, diag });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err?.message, diag });
+  }
+});
