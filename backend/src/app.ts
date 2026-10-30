@@ -138,3 +138,12 @@ export function createApp(): Application {
 
   return app;
 }
+
+const defaultApp = createApp();
+export default defaultApp;
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = defaultApp;
+  module.exports.default = defaultApp;
+  module.exports.createApp = createApp;
+}
+
