@@ -44,14 +44,6 @@ export function PublicRoute({ children }: { children: React.ReactNode }) {
 
   // Redirect authenticated users to their dashboard
   if (isAuthenticated && user) {
-    if (user.role === 'SUPER_ADMIN') {
-      import('@/utils/tenant').then(({ isPlatformHost, getPlatformUrl }) => {
-        if (!isPlatformHost()) {
-          window.location.href = `${getPlatformUrl()}/erp/super-admin/dashboard`;
-        }
-      });
-    }
-    
     const dashboardPath = getDashboardPath(user.role);
     return <Navigate to={dashboardPath} replace />;
   }

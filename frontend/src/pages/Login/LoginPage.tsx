@@ -130,14 +130,12 @@ export function LoginPage() {
           </form>
 
           <div className="login-demo-creds">
-            <p className="login-demo-title">Demo credentials</p>
+            <p className="login-demo-title">Active Role Credentials</p>
             <div className="login-demo-grid">
               {[
-                { role: 'SUPER_ADMIN', email: 'admin@zperp.in',            pass: 'Admin@123456' },
-                { role: 'PRINCIPAL',   email: 'principal@zpschool1.in',    pass: 'Principal@123' },
-                { role: 'TEACHER',     email: 'teacher@zpschool1.in',      pass: 'Teacher@123' },
-                { role: 'STUDENT',     email: 'student@zpschool1.in',      pass: 'Student@123' },
-              ].map(({ role, email: e, pass }) => (
+                { role: 'SUPER_ADMIN', email: 'admin@zpschoolerp.com', pass: 'Admin@1234', desc: 'Platform Admin' },
+                { role: 'PRINCIPAL',   email: 'shinde@gmail.com',      pass: 'Eduvanta@123', desc: 'Ellora Highschool' },
+              ].map(({ role, email: e, pass, desc }) => (
                 <button
                   key={role}
                   type="button"
@@ -146,9 +144,13 @@ export function LoginPage() {
                 >
                   <span className="login-demo-role">{role}</span>
                   <span className="login-demo-email">{e}</span>
+                  <span style={{ fontSize: '10px', color: 'var(--color-neutral-400)', display: 'block', marginTop: '2px' }}>{desc}</span>
                 </button>
               ))}
             </div>
+            <p style={{ fontSize: '11px', color: 'var(--color-neutral-500)', marginTop: '8px', textAlign: 'center' }}>
+              Student accounts are auto-provisioned upon enrollment by school principals.
+            </p>
           </div>
 
           <p className="login-footer">

@@ -11,6 +11,11 @@ interface UserContext {
 export declare function getAuthorizedContext(schoolId: string, user: UserContext): Promise<{
     school: {
         name: string;
+        _count: {
+            students: number;
+            teachers: number;
+            classes: number;
+        };
         address: string | null;
         principalName: string | null;
         tagline: string | null;
@@ -35,11 +40,6 @@ export declare function getAuthorizedContext(schoolId: string, user: UserContext
             title: string;
             eventDate: Date;
         }[];
-        _count: {
-            students: number;
-            teachers: number;
-            classes: number;
-        };
     };
     students: any[];
     teachers: any[];

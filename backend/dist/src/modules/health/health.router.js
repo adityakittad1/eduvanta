@@ -4,16 +4,31 @@ exports.healthRouter = void 0;
 // Health check router
 const express_1 = require("express");
 const prisma_1 = require("../../lib/prisma");
+const supabase_1 = require("../../lib/supabase");
 exports.healthRouter = (0, express_1.Router)();
 exports.healthRouter.get('/', async (_req, res) => {
-    let dbStatus = 'connected';
+    let dbStatus = 'disconnected';
+    let dbProvider = 'none';
     let dbError = null;
     try {
         await prisma_1.prisma.$queryRaw `SELECT 1`;
+        dbStatus = 'connected';
+        dbProvider = 'prisma';
     }
     catch (err) {
-        dbStatus = 'disconnected';
         dbError = err instanceof Error ? err.message : String(err);
+        if (supabase_1.supabase) {
+            try {
+                const { data } = await supabase_1.supabase.from('schools').select('id').limit(1);
+                if (data) {
+                    dbStatus = 'connected';
+                    dbProvider = 'supabase-rest';
+                }
+            }
+            catch (sbErr) {
+                // Both failed
+            }
+        }
     }
     let dbTarget = 'not_configured';
     if (process.env.DATABASE_URL) {
@@ -32,8 +47,9 @@ exports.healthRouter.get('/', async (_req, res) => {
         timestamp: new Date().toISOString(),
         database: {
             status: dbStatus,
+            provider: dbProvider,
             target: dbTarget,
-            error: dbError,
+            error: dbStatus === 'connected' ? null : dbError,
         },
         envCheck: {
             hasDatabaseUrl: Boolean(process.env.DATABASE_URL),

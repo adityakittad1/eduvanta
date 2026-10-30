@@ -12,8 +12,16 @@ export function requireTenant(req: Request, _res: Response, next: NextFunction):
   const host = hostHeader.split(':')[0];
   const rootDomain = env.ROOT_DOMAIN || 'localhost';
 
-  // If request is to the root domain or admin subdomain, skip the requirement
-  if (host === rootDomain || host === `admin.${rootDomain}`) {
+  // If request is to the root platform host (root domain, localhost, 127.0.0.1, or Vercel preview/production),
+  // skip subdomain requirement and let authenticate/requireSchool handle token-based school scoping
+  if (
+    host === rootDomain ||
+    host === `admin.${rootDomain}` ||
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host.endsWith('.vercel.app') ||
+    host.endsWith('.vercel.sh')
+  ) {
     return next();
   }
 

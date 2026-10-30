@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { prisma } from '../lib/prisma';
 import { env } from '../config/env';
 import { AppError } from './errorHandler';
 
@@ -19,16 +18,15 @@ declare global {
   }
 }
 
+import { resolveSchoolBySlug } from '../lib/authDb';
+
 export async function tenantResolver(req: Request, _res: Response, next: NextFunction): Promise<void> {
   // 1. Check custom header first (used for cross-origin or explicit tenant API calls)
   const headerSlug = req.headers['x-tenant-slug'];
   if (typeof headerSlug === 'string' && headerSlug.trim() !== '') {
     const slug = headerSlug.trim();
     try {
-      const school = await prisma.school.findUnique({
-        where: { slug },
-        select: { id: true, slug: true, name: true, logoUrl: true },
-      });
+      const school = await resolveSchoolBySlug(slug);
       if (!school) {
         return next(new AppError('Tenant not found', 404, 'TENANT_NOT_FOUND'));
       }
@@ -39,7 +37,7 @@ export async function tenantResolver(req: Request, _res: Response, next: NextFun
         logoUrl: school.logoUrl ?? undefined,
       };
       return next();
-    } catch (err) {
+    } catch {
       return next(new AppError('Tenant resolution error', 500, 'TENANT_ERROR'));
     }
   }
@@ -72,10 +70,7 @@ export async function tenantResolver(req: Request, _res: Response, next: NextFun
       return next();
     }
     try {
-      const school = await prisma.school.findUnique({
-        where: { slug },
-        select: { id: true, slug: true, name: true, logoUrl: true },
-      });
+      const school = await resolveSchoolBySlug(slug);
       if (!school) {
         return next(new AppError('Tenant not found', 404, 'TENANT_NOT_FOUND'));
       }
@@ -86,7 +81,7 @@ export async function tenantResolver(req: Request, _res: Response, next: NextFun
         logoUrl: school.logoUrl ?? undefined,
       };
       return next();
-    } catch (err) {
+    } catch {
       return next(new AppError('Tenant resolution error', 500, 'TENANT_ERROR'));
     }
   }

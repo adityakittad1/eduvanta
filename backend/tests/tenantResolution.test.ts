@@ -1,8 +1,52 @@
 import request from 'supertest';
 import { createApp } from '../src/app';
 
+import bcrypt from 'bcryptjs';
+import * as authDb from '../src/lib/authDb';
+
 describe('Tenant Resolution & Login Regression Tests', () => {
   const app = createApp();
+  let testPasswordHash = '';
+
+  beforeAll(async () => {
+    testPasswordHash = await bcrypt.hash('Principal@123', 8);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  beforeEach(() => {
+    jest.spyOn(authDb, 'findUserForLogin').mockResolvedValue({
+      id: 'principal-test-id',
+      email: 'principal@zpschool1.in',
+      name: 'Principal Tester',
+      passwordHash: testPasswordHash,
+      role: 'PRINCIPAL',
+      schoolId: 'school-ellora-id',
+      isActive: true,
+      school: {
+        id: 'school-ellora-id',
+        name: 'ELLORA HIGHSCHOOL',
+        slug: 'ellora-highschool',
+        logoUrl: null,
+        isActive: true,
+      },
+      student: null,
+    });
+
+    jest.spyOn(authDb, 'resolveSchoolBySlug').mockImplementation(async (slug: string) => {
+      if (slug === 'ellora-highschool') {
+        return { id: 'school-ellora-id', name: 'ELLORA HIGHSCHOOL', slug: 'ellora-highschool' };
+      }
+      if (slug === 'zp-school-wardha') {
+        return { id: 'school-wardha-id', name: 'ZP School Wardha', slug: 'zp-school-wardha' };
+      }
+      return null;
+    });
+
+    jest.spyOn(authDb, 'saveRefreshToken').mockResolvedValue();
+  });
 
   it('allows school users to log in from root domain and adopts school context', async () => {
     const res = await request(app)

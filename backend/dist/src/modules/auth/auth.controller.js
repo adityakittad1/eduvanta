@@ -10,6 +10,7 @@ const prisma_1 = require("../../lib/prisma");
 const env_1 = require("../../config/env");
 const errorHandler_1 = require("../../middleware/errorHandler");
 const logger_1 = require("../../lib/logger");
+const authDb_1 = require("../../lib/authDb");
 function generateAccessToken(user) {
     return jsonwebtoken_1.default.sign({ userId: user.id, role: user.role, schoolId: user.schoolId }, env_1.env.JWT_ACCESS_SECRET, { expiresIn: env_1.env.JWT_ACCESS_EXPIRES_IN });
 }
@@ -19,24 +20,7 @@ function generateRefreshToken(userId) {
 async function login(req, res, next) {
     try {
         const { email, password } = req.body;
-        const user = await prisma_1.prisma.user.findUnique({
-            where: { email: email.toLowerCase().trim() },
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                passwordHash: true,
-                role: true,
-                schoolId: true,
-                isActive: true,
-                school: {
-                    select: { id: true, name: true, logoUrl: true, isActive: true, slug: true },
-                },
-                student: {
-                    select: { id: true },
-                },
-            },
-        });
+        const user = await (0, authDb_1.findUserForLogin)(email);
         if (!user || !user.isActive) {
             throw new errorHandler_1.AppError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
         }
@@ -75,13 +59,7 @@ async function login(req, res, next) {
         const tokenHash = await bcryptjs_1.default.hash(refreshToken, 10);
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 7);
-        await prisma_1.prisma.refreshToken.create({
-            data: {
-                userId: user.id,
-                tokenHash,
-                expiresAt,
-            },
-        });
+        await (0, authDb_1.saveRefreshToken)(user.id, tokenHash, expiresAt);
         // Set refresh token as HTTP-only cookie
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
@@ -120,10 +98,7 @@ async function logout(req, res) {
         if (refreshToken) {
             // Find and revoke all tokens for user (or just the matching one)
             const decoded = jsonwebtoken_1.default.verify(refreshToken, env_1.env.JWT_REFRESH_SECRET);
-            await prisma_1.prisma.refreshToken.updateMany({
-                where: { userId: decoded.userId, revokedAt: null },
-                data: { revokedAt: new Date() },
-            });
+            await (0, authDb_1.revokeAllUserRefreshTokens)(decoded.userId);
         }
         res.clearCookie('refreshToken');
         res.json({ success: true, message: 'Logged out successfully' });
@@ -149,13 +124,7 @@ async function refreshTokens(req, res, next) {
             throw new errorHandler_1.AppError('Invalid or expired refresh token', 401, 'UNAUTHORIZED');
         }
         // Find valid token records for user
-        const tokenRecords = await prisma_1.prisma.refreshToken.findMany({
-            where: {
-                userId: decoded.userId,
-                revokedAt: null,
-                expiresAt: { gt: new Date() },
-            },
-        });
+        const tokenRecords = await (0, authDb_1.findValidRefreshTokens)(decoded.userId);
         // Verify against stored hashes
         let validRecord = null;
         for (const record of tokenRecords) {
@@ -169,14 +138,8 @@ async function refreshTokens(req, res, next) {
             throw new errorHandler_1.AppError('Refresh token not recognized', 401, 'UNAUTHORIZED');
         }
         // Revoke old token
-        await prisma_1.prisma.refreshToken.update({
-            where: { id: validRecord.id },
-            data: { revokedAt: new Date() },
-        });
-        const user = await prisma_1.prisma.user.findUnique({
-            where: { id: decoded.userId },
-            select: { id: true, email: true, name: true, role: true, schoolId: true, isActive: true },
-        });
+        await (0, authDb_1.revokeRefreshToken)(validRecord.id);
+        const user = await (0, authDb_1.findUserProfileById)(decoded.userId);
         if (!user || !user.isActive) {
             throw new errorHandler_1.AppError('User not found or inactive', 401, 'UNAUTHORIZED');
         }
@@ -186,9 +149,7 @@ async function refreshTokens(req, res, next) {
         const newTokenHash = await bcryptjs_1.default.hash(newRefreshToken, 10);
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 7);
-        await prisma_1.prisma.refreshToken.create({
-            data: { userId: user.id, tokenHash: newTokenHash, expiresAt },
-        });
+        await (0, authDb_1.saveRefreshToken)(user.id, newTokenHash, expiresAt);
         res.cookie('refreshToken', newRefreshToken, {
             httpOnly: true,
             secure: env_1.env.NODE_ENV === 'production',
@@ -278,39 +239,7 @@ async function getMe(req, res, next) {
     try {
         if (!req.user)
             throw new errorHandler_1.AppError('Not authenticated', 401, 'UNAUTHORIZED');
-        const user = await prisma_1.prisma.user.findUnique({
-            where: { id: req.user.id },
-            select: {
-                id: true,
-                email: true,
-                name: true,
-                role: true,
-                schoolId: true,
-                isActive: true,
-                createdAt: true,
-                school: {
-                    select: {
-                        id: true,
-                        name: true,
-                        logoUrl: true,
-                        slug: true,
-                        address: true,
-                        contactPhone: true,
-                        contactEmail: true,
-                        principalName: true,
-                        tagline: true,
-                        establishedYear: true,
-                        isPublicEnabled: true,
-                    },
-                },
-                student: {
-                    select: { id: true, firstName: true, lastName: true, classId: true },
-                },
-                teacher: {
-                    select: { id: true, firstName: true, lastName: true },
-                },
-            },
-        });
+        const user = await (0, authDb_1.findUserProfileById)(req.user.id);
         if (!user)
             throw new errorHandler_1.AppError('User not found', 404, 'NOT_FOUND');
         // Derive display name: explicit name field → teacher name → student name → email prefix

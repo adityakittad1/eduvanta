@@ -31,15 +31,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSchoolFacilities = exports.getSchoolEvents = exports.getSchoolNotices = exports.getSchoolGallery = exports.getSchoolProfile = exports.getSchoolHome = exports.listSchools = void 0;
 const publicService = __importStar(require("./public.service"));
 const logger_1 = require("../../lib/logger");
+const authDb_1 = require("../../lib/authDb");
 // GET /api/v1/public/schools
 async function listSchools(_req, res, _next) {
     try {
-        const schools = await publicService.listPublicSchools();
+        const schools = await (0, authDb_1.listPublicSchools)();
         res.json({ success: true, data: schools });
     }
     catch (error) {
         logger_1.logger.warn('Failed to retrieve public schools from database', { error: error?.message });
-        // In production, return safe empty array with 200 rather than crashing public directory
         res.status(200).json({
             success: true,
             data: [],

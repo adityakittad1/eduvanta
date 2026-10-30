@@ -15,10 +15,10 @@ export declare const addQuestionSchema: z.ZodObject<{
         optionC: z.ZodOptional<z.ZodString>;
         optionD: z.ZodOptional<z.ZodString>;
         correctOption: z.ZodEnum<{
-            D: "D";
             A: "A";
             B: "B";
             C: "C";
+            D: "D";
         }>;
         order: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
     }, z.core.$strip>;
@@ -28,10 +28,10 @@ export declare const submitQuizSchema: z.ZodObject<{
         answers: z.ZodArray<z.ZodObject<{
             questionId: z.ZodString;
             selectedOption: z.ZodEnum<{
-                D: "D";
                 A: "A";
                 B: "B";
                 C: "C";
+                D: "D";
             }>;
         }, z.core.$strip>>;
     }, z.core.$strip>;

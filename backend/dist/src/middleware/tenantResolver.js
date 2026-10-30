@@ -1,19 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.tenantResolver = void 0;
-const prisma_1 = require("../lib/prisma");
 const env_1 = require("../config/env");
 const errorHandler_1 = require("./errorHandler");
+const authDb_1 = require("../lib/authDb");
 async function tenantResolver(req, _res, next) {
     // 1. Check custom header first (used for cross-origin or explicit tenant API calls)
     const headerSlug = req.headers['x-tenant-slug'];
     if (typeof headerSlug === 'string' && headerSlug.trim() !== '') {
         const slug = headerSlug.trim();
         try {
-            const school = await prisma_1.prisma.school.findUnique({
-                where: { slug },
-                select: { id: true, slug: true, name: true, logoUrl: true },
-            });
+            const school = await (0, authDb_1.resolveSchoolBySlug)(slug);
             if (!school) {
                 return next(new errorHandler_1.AppError('Tenant not found', 404, 'TENANT_NOT_FOUND'));
             }
@@ -25,7 +22,7 @@ async function tenantResolver(req, _res, next) {
             };
             return next();
         }
-        catch (err) {
+        catch {
             return next(new errorHandler_1.AppError('Tenant resolution error', 500, 'TENANT_ERROR'));
         }
     }
@@ -52,10 +49,7 @@ async function tenantResolver(req, _res, next) {
             return next();
         }
         try {
-            const school = await prisma_1.prisma.school.findUnique({
-                where: { slug },
-                select: { id: true, slug: true, name: true, logoUrl: true },
-            });
+            const school = await (0, authDb_1.resolveSchoolBySlug)(slug);
             if (!school) {
                 return next(new errorHandler_1.AppError('Tenant not found', 404, 'TENANT_NOT_FOUND'));
             }
@@ -67,7 +61,7 @@ async function tenantResolver(req, _res, next) {
             };
             return next();
         }
-        catch (err) {
+        catch {
             return next(new errorHandler_1.AppError('Tenant resolution error', 500, 'TENANT_ERROR'));
         }
     }

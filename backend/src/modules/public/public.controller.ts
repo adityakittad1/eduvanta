@@ -8,14 +8,15 @@ import { Request, Response, NextFunction } from 'express';
 import * as publicService from './public.service';
 import { logger } from '../../lib/logger';
 
+import { listPublicSchools } from '../../lib/authDb';
+
 // GET /api/v1/public/schools
 export async function listSchools(_req: Request, res: Response, _next: NextFunction): Promise<void> {
   try {
-    const schools = await publicService.listPublicSchools();
+    const schools = await listPublicSchools();
     res.json({ success: true, data: schools });
   } catch (error: any) {
     logger.warn('Failed to retrieve public schools from database', { error: error?.message });
-    // In production, return safe empty array with 200 rather than crashing public directory
     res.status(200).json({
       success: true,
       data: [],

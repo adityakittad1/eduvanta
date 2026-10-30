@@ -13,6 +13,11 @@ export declare function listPublicSchools(): Promise<{
 export declare function getPublicSchoolProfile(schoolId: string): Promise<{
     id: string;
     name: string;
+    _count: {
+        students: number;
+        teachers: number;
+        classes: number;
+    };
     slug: string | null;
     logoUrl: string | null;
     address: string | null;
@@ -22,11 +27,6 @@ export declare function getPublicSchoolProfile(schoolId: string): Promise<{
     description: string | null;
     tagline: string | null;
     establishedYear: number | null;
-    _count: {
-        students: number;
-        teachers: number;
-        classes: number;
-    };
 }>;
 export declare function getPublicFacilities(schoolId: string): Promise<{
     id: string;
@@ -42,8 +42,8 @@ export declare function getPublicAchievements(schoolId: string): Promise<{
 }[]>;
 export declare function getPublicGallery(schoolId: string, category?: string): Promise<{
     id: string;
-    description: string | null;
     createdAt: Date;
+    description: string | null;
     title: string;
     fileUrl: string;
     category: import(".prisma/client").$Enums.GalleryCategory;
@@ -65,6 +65,11 @@ export declare function getPublicHomePageData(schoolId: string): Promise<{
     profile: {
         id: string;
         name: string;
+        _count: {
+            students: number;
+            teachers: number;
+            classes: number;
+        };
         slug: string | null;
         logoUrl: string | null;
         address: string | null;
@@ -74,11 +79,6 @@ export declare function getPublicHomePageData(schoolId: string): Promise<{
         description: string | null;
         tagline: string | null;
         establishedYear: number | null;
-        _count: {
-            students: number;
-            teachers: number;
-            classes: number;
-        };
     };
     facilities: {
         id: string;
@@ -94,8 +94,8 @@ export declare function getPublicHomePageData(schoolId: string): Promise<{
     }[];
     gallery: {
         id: string;
-        description: string | null;
         createdAt: Date;
+        description: string | null;
         title: string;
         fileUrl: string;
         category: import(".prisma/client").$Enums.GalleryCategory;
