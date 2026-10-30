@@ -27,16 +27,17 @@
       }
     },
     {
-      "source": "/((?!assets/).*)",
+      "source": "/assets/(.*)",
       "destination": {
         "service": "frontend",
-        "path": "/index.html"
+        "path": "/assets/:1"
       }
     },
     {
       "source": "/(.*)",
       "destination": {
-        "service": "frontend"
+        "service": "frontend",
+        "path": "/index.html"
       }
     }
   ]
