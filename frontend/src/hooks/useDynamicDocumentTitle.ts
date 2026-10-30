@@ -32,7 +32,7 @@ export function useDynamicDocumentTitle() {
       if (tenant) {
         title = `${tenant.name} | EduVanta`;
       } else {
-        title = `EduVanta`;
+        title = `EduVanta — Next-Generation Education ERP`;
       }
     }
 

@@ -6,14 +6,34 @@
 const API_BASE = '/api/v1';
 
 async function publicFetch<T>(endpoint: string): Promise<T> {
-  const response = await fetch(`${API_BASE}/public${endpoint}`, {
-    headers: { 'Content-Type': 'application/json' },
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}/public${endpoint}`, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (networkError: any) {
+    throw new Error(networkError?.message || 'Network connection failed. Please check your internet connection.');
+  }
 
-  const json = await response.json();
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const errorText = await response.text().catch(() => '');
+    throw new Error(
+      !response.ok
+        ? `Server error (${response.status}): ${errorText.slice(0, 100) || response.statusText}`
+        : 'Unexpected non-JSON response from server'
+    );
+  }
+
+  let json: any;
+  try {
+    json = await response.json();
+  } catch {
+    throw new Error('Invalid JSON response received from server.');
+  }
 
   if (!response.ok || !json.success) {
-    throw new Error(json.message || 'Request failed');
+    throw new Error(json.message || `Request failed with status ${response.status}`);
   }
 
   return json.data as T;

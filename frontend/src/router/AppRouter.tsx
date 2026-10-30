@@ -31,6 +31,7 @@ import { ManageSchoolsPage } from '@/features/super-admin/pages/ManageSchoolsPag
 import { ManageUsersPage } from '@/features/super-admin/pages/ManageUsersPage';
 import { SchoolPublicHome } from '@/features/public-website/pages/SchoolPublicHome';
 import { SchoolDirectoryPage } from '@/features/public-website/pages/SchoolDirectoryPage';
+import { EduVantaHome } from '@/features/public-website/pages/EduVantaHome';
 import { PublicWebsiteManagePage } from '@/features/school-profile/pages/PublicWebsiteManagePage';
 import { TenantProvider } from '@/context/TenantContext';
 import { getTenantSlug } from '@/utils/tenant';
@@ -67,12 +68,14 @@ function UnauthorizedPage() {
 }
 
 // ── Public Home Router ────────────────────────────────────────
+// When accessed via school subdomain (e.g. gangapur.eduvanta.com), renders school digital campus.
+// When accessed via platform root (e.g. eduvanta.com, eduvanta-liard.vercel.app), renders EduVanta platform home.
 function TenantHomeRouter() {
   const slug = getTenantSlug();
   if (slug) {
     return <SchoolPublicHome />;
   }
-  return <Navigate to="/schools" replace />;
+  return <EduVantaHome />;
 }
 
 export function AppRouter() {
