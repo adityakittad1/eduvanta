@@ -222,7 +222,9 @@ export function PublicWebsiteManagePage() {
             <>Your public website is <strong>live</strong>. Visitors can see it at{' '}
               {profile.slug ? (
                 <a href={getTenantUrl(profile.slug)} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary-600)' }}>
-                  {getTenantUrl(profile.slug)}
+                  {typeof window !== 'undefined' && getTenantUrl(profile.slug).startsWith('/')
+                    ? `${window.location.origin}${getTenantUrl(profile.slug)}`
+                    : getTenantUrl(profile.slug)}
                 </a>
               ) : 'your school URL'}.
             </>

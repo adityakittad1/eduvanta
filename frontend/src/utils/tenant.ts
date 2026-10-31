@@ -19,9 +19,20 @@ export function getTenantSlug(): string | null {
     return null;
   }
 
-  if (rootDomain !== 'localhost' && host.endsWith(rootDomain)) {
+  // Support *.localhost subdomains (e.g. rajmata-jijau-kolhapur.localhost)
+  if (host.endsWith('.localhost')) {
+    const slug = host.replace(/\.localhost$/, '');
+    if (slug && slug !== 'www' && slug !== 'admin') {
+      return slug;
+    }
+  }
+
+  // Support custom root domain subdomains (e.g. school.eduvanta.com)
+  if (rootDomain && rootDomain !== 'localhost' && host.endsWith(rootDomain)) {
     const slug = host.replace(new RegExp(`\\.?${rootDomain}$`), '');
-    return slug || null;
+    if (slug && slug !== 'www' && slug !== 'admin') {
+      return slug;
+    }
   }
 
   return null;
@@ -56,7 +67,24 @@ export function getPlatformUrl(): string {
 }
 
 export function getTenantUrl(slug: string): string {
-  const rootDomain = import.meta.env.VITE_ROOT_DOMAIN || 'localhost';
+  if (typeof window === 'undefined') return `/school/${slug}`;
+
+  const host = window.location.hostname.toLowerCase();
+  const rootDomain = (import.meta.env.VITE_ROOT_DOMAIN || '').toLowerCase();
+
+  // If in local development, on Vercel preview/free domain, or without a custom root domain:
+  // use path-based routing (/school/:slug) so it works reliably everywhere without DNS/port issues.
+  if (
+    !rootDomain ||
+    rootDomain === 'localhost' ||
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host.endsWith('.vercel.app')
+  ) {
+    return `/school/${slug}`;
+  }
+
+  // Production with a dedicated custom root domain (e.g. eduvanta.com with wildcard DNS)
   const port = window.location.port ? `:${window.location.port}` : '';
   const protocol = window.location.protocol;
   return `${protocol}//${slug}.${rootDomain}${port}`;

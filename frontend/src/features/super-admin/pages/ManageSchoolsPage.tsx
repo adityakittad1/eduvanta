@@ -61,7 +61,19 @@ export function ManageSchoolsPage() {
   };
 
   const columns = [
-    { header: 'Name', accessorKey: 'name' as keyof School },
+    {
+      header: 'Name',
+      cell: (s: School) => (
+        <a
+          href={getTenantUrl(s.slug)}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ fontWeight: 600, color: 'var(--color-primary-700)', textDecoration: 'none' }}
+        >
+          {s.name}
+        </a>
+      ),
+    },
     { header: 'Principal', cell: (s: School) => s.principalName || '-' },
     { header: 'Students', cell: (s: School) => s._count?.students || 0 },
     { header: 'Teachers', cell: (s: School) => s._count?.teachers || 0 },

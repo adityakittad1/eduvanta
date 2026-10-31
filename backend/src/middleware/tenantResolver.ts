@@ -63,9 +63,12 @@ export async function tenantResolver(req: Request, _res: Response, next: NextFun
     return next();
   }
 
-  // Check if host is a subdomain of rootDomain
-  if (rootDomain !== 'localhost' && host.endsWith(`.${rootDomain}`)) {
-    const slug = host.replace(`.${rootDomain}`, '');
+  // Check if host is a subdomain of rootDomain or *.localhost
+  const isLocalhostSubdomain = host.endsWith('.localhost');
+  const isRootSubdomain = rootDomain !== 'localhost' && host.endsWith(`.${rootDomain}`);
+
+  if (isLocalhostSubdomain || isRootSubdomain) {
+    const slug = isLocalhostSubdomain ? host.replace(/\.localhost$/, '') : host.replace(`.${rootDomain}`, '');
     if (!slug || slug === 'admin' || slug === 'www') {
       return next();
     }
