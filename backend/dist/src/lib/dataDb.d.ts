@@ -92,6 +92,8 @@ export declare function dbCreateUser(params: {
     schoolId?: string | null;
     isActive?: boolean;
 }): Promise<any>;
+export declare function dbFindUserById(id: string): Promise<any | null>;
+export declare function dbUpdateUser(id: string, data: any): Promise<any>;
 export declare function dbGetAllUsers(params: {
     schoolId?: string;
     allowedRoles?: string[];

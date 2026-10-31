@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   GraduationCap,
@@ -14,10 +15,16 @@ import {
   Layers,
   Clock,
   Compass,
+  Menu,
+  X,
 } from 'lucide-react';
 import '../styles/publicWebsite.css';
 
 export function EduVantaHome() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+
   return (
     <div className="public-site" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* ─── Global Platform Header / Navbar ─────────────────────────────── */}
@@ -63,11 +70,44 @@ export function EduVantaHome() {
               <ArrowRight size={15} />
             </Link>
           </nav>
+
+          <button
+            className="public-mobile-toggle"
+            onClick={() => setMobileMenuOpen(prev => !prev)}
+            aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          >
+            {mobileMenuOpen ? <X size={26} /> : <Menu size={26} />}
+          </button>
         </div>
       </header>
 
+      {/* ─── Mobile Navigation Drawer ───────────────────────────────────── */}
+      <div className={`public-mobile-nav ${mobileMenuOpen ? 'open' : ''}`}>
+        <a href="#features" className="public-nav-link" onClick={closeMobileMenu}>
+          Platform Features
+        </a>
+        <a href="#early-warning" className="public-nav-link" onClick={closeMobileMenu}>
+          Early Warning (EWS)
+        </a>
+        <a href="#ai-assistant" className="public-nav-link" onClick={closeMobileMenu}>
+          AI Assistant
+        </a>
+        <Link to="/schools" className="public-nav-link" onClick={closeMobileMenu} style={{ fontWeight: 600, color: 'var(--color-primary-700)' }}>
+          School Directory
+        </Link>
+        <Link
+          to="/erp/login"
+          className="public-header-erp-btn"
+          onClick={closeMobileMenu}
+          style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', minHeight: '44px' }}
+        >
+          <span>ERP Portal Login</span>
+          <ArrowRight size={16} />
+        </Link>
+      </div>
+
       {/* ─── Hero Section ────────────────────────────────────────────────── */}
-      <section className="public-hero" style={{ padding: '6rem 2rem 7rem' }}>
+      <section className="public-hero" style={{ padding: 'clamp(4.5rem, 8vw, 6.5rem) clamp(1rem, 4vw, 2rem)' }}>
         <div className="public-hero-inner">
           <div className="public-hero-badge" style={{ borderColor: 'rgba(96, 165, 250, 0.4)', background: 'rgba(30, 58, 138, 0.35)' }}>
             <Sparkles size={15} style={{ color: '#93C5FD' }} />
@@ -262,8 +302,8 @@ export function EduVantaHome() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '1.75rem',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+              gap: '1.5rem',
             }}
           >
             <div
@@ -271,7 +311,7 @@ export function EduVantaHome() {
                 background: 'white',
                 border: '1px solid #E2E8F0',
                 borderRadius: '16px',
-                padding: '2rem',
+                padding: 'clamp(1.25rem, 4vw, 2rem)',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.04)',
               }}
             >
@@ -300,7 +340,7 @@ export function EduVantaHome() {
                 background: 'white',
                 border: '1px solid #E2E8F0',
                 borderRadius: '16px',
-                padding: '2rem',
+                padding: 'clamp(1.25rem, 4vw, 2rem)',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.04)',
               }}
             >
@@ -329,7 +369,7 @@ export function EduVantaHome() {
                 background: 'white',
                 border: '1px solid #E2E8F0',
                 borderRadius: '16px',
-                padding: '2rem',
+                padding: 'clamp(1.25rem, 4vw, 2rem)',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.04)',
               }}
             >
@@ -358,7 +398,7 @@ export function EduVantaHome() {
                 background: 'white',
                 border: '1px solid #E2E8F0',
                 borderRadius: '16px',
-                padding: '2rem',
+                padding: 'clamp(1.25rem, 4vw, 2rem)',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.04)',
               }}
             >
@@ -386,7 +426,7 @@ export function EduVantaHome() {
       </section>
 
       {/* ─── Callout Banner: Schools Directory ─────────────────────────── */}
-      <section style={{ background: 'linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%)', color: 'white', padding: '5rem 2rem' }}>
+      <section style={{ background: 'linear-gradient(135deg, #1E3A8A 0%, #1E40AF 100%)', color: 'white', padding: 'clamp(3rem, 6vw, 5rem) clamp(1rem, 4vw, 2rem)' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto', textAlign: 'center' }}>
           <div
             style={{

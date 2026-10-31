@@ -182,7 +182,7 @@ export function SchoolDirectoryPage() {
             <>
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))',
                 gap: 'var(--space-5)',
               }}>
                 {filtered.map(school => (
@@ -195,7 +195,7 @@ export function SchoolDirectoryPage() {
                       background: 'white',
                       border: '1px solid var(--color-neutral-200)',
                       borderRadius: 'var(--radius-xl)',
-                      padding: 'var(--space-6)',
+                      padding: 'clamp(1rem, 3vw, var(--space-6))',
                       display: 'flex',
                       gap: 'var(--space-4)',
                       alignItems: 'flex-start',

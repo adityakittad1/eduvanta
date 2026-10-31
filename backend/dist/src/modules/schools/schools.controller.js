@@ -1,6 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateSchool = exports.createSchool = exports.getSchoolById = exports.getAllSchools = void 0;
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const errorHandler_1 = require("../../middleware/errorHandler");
 const logger_1 = require("../../lib/logger");
 const dataDb_1 = require("../../lib/dataDb");
@@ -83,6 +87,26 @@ async function createSchool(req, res, next) {
             logoUrl: data.logoUrl || null,
         });
         logger_1.logger.info(`School created: ${school.id} (slug: ${slug})`, { userId: req.user?.id });
+        // Auto-provision a PRINCIPAL user account for the school if one doesn't exist yet
+        try {
+            const principalEmail = data.contactEmail || `principal.${slug.replace(/-/g, '').toLowerCase()}@eduvanta.local`;
+            const existingPrincipal = await (0, dataDb_1.dbFindUserByEmail)(principalEmail);
+            if (!existingPrincipal) {
+                const passwordHash = await bcryptjs_1.default.hash('Eduvanta@123', 10);
+                await (0, dataDb_1.dbCreateUser)({
+                    email: principalEmail,
+                    name: data.principalName || `${data.name} Principal`,
+                    passwordHash,
+                    role: 'PRINCIPAL',
+                    schoolId: school.id,
+                    isActive: true,
+                });
+                logger_1.logger.info(`Auto-provisioned principal user account: ${principalEmail} for school ${school.id}`);
+            }
+        }
+        catch (provisionErr) {
+            logger_1.logger.warn('Failed to auto-provision principal account for school', { error: provisionErr?.message });
+        }
         // Audit log — school onboarding is critical
         await (0, dataDb_1.dbCreateAuditLog)({
             userId: req.user.id,

@@ -1,11 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
-import { prisma } from '../../lib/prisma';
 import { AppError } from '../../middleware/errorHandler';
 import { CreateUserInput, UpdateUserInput } from './users.schema';
 import { logger } from '../../lib/logger';
 
-import { dbGetAllUsers, dbFindUserByEmail, dbCreateUser, dbGetSchoolById } from '../../lib/dataDb';
+import { dbGetAllUsers, dbFindUserByEmail, dbFindUserById, dbCreateUser, dbUpdateUser, dbGetSchoolById } from '../../lib/dataDb';
 
 export async function getAllUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
@@ -122,7 +121,7 @@ export async function updateUser(req: Request, res: Response, next: NextFunction
     const id = req.params.id as string;
     const data = req.body as UpdateUserInput;
 
-    const existing = await prisma.user.findUnique({ where: { id } });
+    const existing = await dbFindUserById(id);
     if (!existing) {
       throw new AppError('User not found', 404, 'NOT_FOUND');
     }
@@ -151,25 +150,13 @@ export async function updateUser(req: Request, res: Response, next: NextFunction
     }
 
     if (data.email && data.email !== existing.email) {
-      const emailTaken = await prisma.user.findUnique({ where: { email: data.email } });
-      if (emailTaken) {
+      const emailTaken = await dbFindUserByEmail(data.email);
+      if (emailTaken && emailTaken.id !== id) {
         throw new AppError('Email is already in use', 400, 'BAD_REQUEST');
       }
     }
 
-    const user = await prisma.user.update({
-      where: { id },
-      data: updateData,
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        schoolId: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
-      }
-    });
+    const user = await dbUpdateUser(id, updateData);
 
     res.json({ success: true, data: user });
   } catch (error) {

@@ -6,7 +6,7 @@ import { aiApi } from '../api/ai';
 export function AiAssistantPage() {
   const toast = useToast();
   const [messages, setMessages] = useState<{role: 'user'|'assistant', content: string}[]>([
-    { role: 'assistant', content: 'Hello! I am your AI assistant for the ZP School ERP. I can help you find student information, analyze performance trends, or explain school policies. How can I help you today?' }
+    { role: 'assistant', content: 'Hello! I am your EduVanta AI assistant. I can help you find student information, analyze performance trends, or explain school policies and syllabus. How can I help you today?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);

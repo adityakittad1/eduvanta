@@ -25,7 +25,7 @@ export function Header() {
 
   const schoolName = user?.role === 'SUPER_ADMIN' 
     ? 'Platform Administration' 
-    : user?.school?.name || 'ZP School ERP';
+    : user?.school?.name || 'EduVanta';
 
   return (
     <>

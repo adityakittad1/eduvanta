@@ -1039,6 +1039,78 @@ export async function dbCreateUser(params: {
   throw new Error('Database service unavailable');
 }
 
+export async function dbFindUserById(id: string): Promise<any | null> {
+  if (isPrismaAvailable()) {
+    try {
+      const u = await prisma.user.findUnique({ where: { id } });
+      if (u) return u;
+    } catch (err: any) {
+      markPrismaFailure();
+    }
+  }
+
+  if (supabase) {
+    try {
+      const { data } = await supabase.from('users').select('*').eq('id', id).maybeSingle();
+      if (data) return mapUser(data);
+    } catch (err: any) {
+      logger.error('Supabase dbFindUserById failed', { error: err?.message });
+    }
+  }
+
+  return null;
+}
+
+export async function dbUpdateUser(id: string, data: any): Promise<any> {
+  if (isPrismaAvailable()) {
+    try {
+      return await prisma.user.update({
+        where: { id },
+        data,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          schoolId: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+          school: { select: { name: true } },
+        },
+      });
+    } catch (err: any) {
+      markPrismaFailure();
+      logger.warn('Prisma dbUpdateUser failed, falling back to Supabase client', { error: err?.message });
+    }
+  }
+
+  if (supabase) {
+    const updatePayload: any = { updated_at: new Date().toISOString() };
+    if (data.email !== undefined) updatePayload.email = data.email.toLowerCase().trim();
+    if (data.name !== undefined) updatePayload.name = data.name;
+    if (data.passwordHash !== undefined) updatePayload.password_hash = data.passwordHash;
+    if (data.role !== undefined) updatePayload.role = data.role;
+    if (data.schoolId !== undefined) updatePayload.school_id = data.schoolId || null;
+    if (data.isActive !== undefined) updatePayload.is_active = data.isActive;
+
+    const { data: updated, error } = await supabase
+      .from('users')
+      .update(updatePayload)
+      .eq('id', id)
+      .select(`
+        id, email, name, role, school_id, is_active, created_at, updated_at,
+        schools ( name )
+      `)
+      .single();
+
+    if (error) throw new Error(error.message);
+    return mapUser(updated);
+  }
+
+  throw new Error('Database service unavailable');
+}
+
 export async function dbGetAllUsers(params: {
   schoolId?: string;
   allowedRoles?: string[];

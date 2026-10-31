@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.dbGetAllUsers = exports.dbCreateUser = exports.dbFindUserByEmail = exports.dbCreateTeacher = exports.dbGetTeachers = exports.dbCreateClass = exports.dbGetClassById = exports.dbGetClasses = exports.dbUpdateStudent = exports.dbCreateStudent = exports.dbFindStudentByAdmission = exports.dbGetStudentById = exports.dbGetStudents = exports.dbUpdateSchool = exports.dbCreateSchool = exports.dbGetSchoolById = exports.dbGetAllSchools = exports.dbFindSchoolBySlug = exports.dbCreateAuditLog = exports.mapUser = exports.mapTeacher = exports.mapClass = exports.mapStudent = exports.mapSchool = exports.generateCuid = void 0;
+exports.dbGetAllUsers = exports.dbUpdateUser = exports.dbFindUserById = exports.dbCreateUser = exports.dbFindUserByEmail = exports.dbCreateTeacher = exports.dbGetTeachers = exports.dbCreateClass = exports.dbGetClassById = exports.dbGetClasses = exports.dbUpdateStudent = exports.dbCreateStudent = exports.dbFindStudentByAdmission = exports.dbGetStudentById = exports.dbGetStudents = exports.dbUpdateSchool = exports.dbCreateSchool = exports.dbGetSchoolById = exports.dbGetAllSchools = exports.dbFindSchoolBySlug = exports.dbCreateAuditLog = exports.mapUser = exports.mapTeacher = exports.mapClass = exports.mapStudent = exports.mapSchool = exports.generateCuid = void 0;
 const crypto_1 = __importDefault(require("crypto"));
 const prisma_1 = require("./prisma");
 const supabase_1 = require("./supabase");
@@ -984,6 +984,84 @@ async function dbCreateUser(params) {
     throw new Error('Database service unavailable');
 }
 exports.dbCreateUser = dbCreateUser;
+async function dbFindUserById(id) {
+    if ((0, authDb_1.isPrismaAvailable)()) {
+        try {
+            const u = await prisma_1.prisma.user.findUnique({ where: { id } });
+            if (u)
+                return u;
+        }
+        catch (err) {
+            (0, authDb_1.markPrismaFailure)();
+        }
+    }
+    if (supabase_1.supabase) {
+        try {
+            const { data } = await supabase_1.supabase.from('users').select('*').eq('id', id).maybeSingle();
+            if (data)
+                return mapUser(data);
+        }
+        catch (err) {
+            logger_1.logger.error('Supabase dbFindUserById failed', { error: err?.message });
+        }
+    }
+    return null;
+}
+exports.dbFindUserById = dbFindUserById;
+async function dbUpdateUser(id, data) {
+    if ((0, authDb_1.isPrismaAvailable)()) {
+        try {
+            return await prisma_1.prisma.user.update({
+                where: { id },
+                data,
+                select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                    role: true,
+                    schoolId: true,
+                    isActive: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    school: { select: { name: true } },
+                },
+            });
+        }
+        catch (err) {
+            (0, authDb_1.markPrismaFailure)();
+            logger_1.logger.warn('Prisma dbUpdateUser failed, falling back to Supabase client', { error: err?.message });
+        }
+    }
+    if (supabase_1.supabase) {
+        const updatePayload = { updated_at: new Date().toISOString() };
+        if (data.email !== undefined)
+            updatePayload.email = data.email.toLowerCase().trim();
+        if (data.name !== undefined)
+            updatePayload.name = data.name;
+        if (data.passwordHash !== undefined)
+            updatePayload.password_hash = data.passwordHash;
+        if (data.role !== undefined)
+            updatePayload.role = data.role;
+        if (data.schoolId !== undefined)
+            updatePayload.school_id = data.schoolId || null;
+        if (data.isActive !== undefined)
+            updatePayload.is_active = data.isActive;
+        const { data: updated, error } = await supabase_1.supabase
+            .from('users')
+            .update(updatePayload)
+            .eq('id', id)
+            .select(`
+        id, email, name, role, school_id, is_active, created_at, updated_at,
+        schools ( name )
+      `)
+            .single();
+        if (error)
+            throw new Error(error.message);
+        return mapUser(updated);
+    }
+    throw new Error('Database service unavailable');
+}
+exports.dbUpdateUser = dbUpdateUser;
 async function dbGetAllUsers(params) {
     if ((0, authDb_1.isPrismaAvailable)()) {
         try {

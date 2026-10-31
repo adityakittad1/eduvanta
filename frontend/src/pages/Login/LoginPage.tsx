@@ -47,9 +47,9 @@ export function LoginPage() {
           <div className="login-brand-logo">
             <School size={40} />
           </div>
-          <h1 className="login-brand-title">ZP School ERP</h1>
+          <h1 className="login-brand-title">EduVanta</h1>
           <p className="login-brand-subtitle">
-            Data-Driven Student Monitoring and Academic Assistance System
+            Next-Generation Education ERP & Digital Campus Platform
           </p>
           <div className="login-brand-features">
             {[
@@ -66,7 +66,7 @@ export function LoginPage() {
             ))}
           </div>
           <p className="login-brand-footer">
-            Deployed across 6 Zilla Parishad Schools<br />
+            Multi-Tenant School ERP & Digital Campus Platform<br />
             Maharashtra, India
           </p>
         </div>
@@ -154,7 +154,7 @@ export function LoginPage() {
           </div>
 
           <p className="login-footer">
-            Zilla Parishad School ERP &mdash; Academic Project 2025–26
+            EduVanta Platform &mdash; Multi-Tenant School ERP & Digital Campus
           </p>
         </div>
       </div>

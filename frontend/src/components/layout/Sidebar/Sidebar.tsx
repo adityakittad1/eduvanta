@@ -82,7 +82,7 @@ export function Sidebar() {
           {!collapsed && (
             <div className="sidebar-brand-text">
               <span className="sidebar-product-name" style={{ fontSize: user?.school ? '0.85rem' : undefined, whiteSpace: 'normal', lineHeight: 1.2 }}>
-                {user?.school ? user.school.name : 'ZP School ERP'}
+                {user?.school ? user.school.name : 'EduVanta'}
               </span>
               <span className="sidebar-school-name" style={{ color: 'var(--color-primary-600)', fontWeight: 600 }}>
                 {user?.role === 'SUPER_ADMIN' ? 'Platform Admin' : `Digital Campus`}

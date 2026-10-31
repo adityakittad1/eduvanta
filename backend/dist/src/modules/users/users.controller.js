@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateUser = exports.createUser = exports.getAllUsers = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
-const prisma_1 = require("../../lib/prisma");
 const errorHandler_1 = require("../../middleware/errorHandler");
 const logger_1 = require("../../lib/logger");
 const dataDb_1 = require("../../lib/dataDb");
@@ -116,7 +115,7 @@ async function updateUser(req, res, next) {
     try {
         const id = req.params.id;
         const data = req.body;
-        const existing = await prisma_1.prisma.user.findUnique({ where: { id } });
+        const existing = await (0, dataDb_1.dbFindUserById)(id);
         if (!existing) {
             throw new errorHandler_1.AppError('User not found', 404, 'NOT_FOUND');
         }
@@ -141,24 +140,12 @@ async function updateUser(req, res, next) {
             delete updateData.password;
         }
         if (data.email && data.email !== existing.email) {
-            const emailTaken = await prisma_1.prisma.user.findUnique({ where: { email: data.email } });
-            if (emailTaken) {
+            const emailTaken = await (0, dataDb_1.dbFindUserByEmail)(data.email);
+            if (emailTaken && emailTaken.id !== id) {
                 throw new errorHandler_1.AppError('Email is already in use', 400, 'BAD_REQUEST');
             }
         }
-        const user = await prisma_1.prisma.user.update({
-            where: { id },
-            data: updateData,
-            select: {
-                id: true,
-                email: true,
-                role: true,
-                schoolId: true,
-                isActive: true,
-                createdAt: true,
-                updatedAt: true,
-            }
-        });
+        const user = await (0, dataDb_1.dbUpdateUser)(id, updateData);
         res.json({ success: true, data: user });
     }
     catch (error) {

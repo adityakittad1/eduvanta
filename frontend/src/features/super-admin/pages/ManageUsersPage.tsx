@@ -13,6 +13,8 @@ export function ManageUsersPage() {
   const [selectedRole, setSelectedRole] = useState<'PRINCIPAL' | 'SUPER_ADMIN'>('PRINCIPAL');
   const [filterRole, setFilterRole] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [page, setPage] = useState<number>(1);
+  const [meta, setMeta] = useState<{ total: number; totalPages: number }>({ total: 0, totalPages: 1 });
   const toast = useToast();
 
   const fetchUsersAndSchools = async () => {
@@ -21,13 +23,17 @@ export function ManageUsersPage() {
       const roleParam = filterRole === 'ALL' ? undefined : (filterRole as any);
       const [usersRes, schoolsRes] = await Promise.all([
         usersApi.getAll({ 
-          limit: 100, 
+          page,
+          limit: 25, 
           role: roleParam,
           search: searchQuery.trim() || undefined 
         }),
         schoolsApi.getAll({ limit: 50 }),
       ]);
       setUsers(usersRes.data);
+      if (usersRes.meta) {
+        setMeta({ total: usersRes.meta.total, totalPages: usersRes.meta.totalPages });
+      }
       setSchools(schoolsRes.data);
     } catch (error) {
       toast.error('Failed to load users');
@@ -37,11 +43,15 @@ export function ManageUsersPage() {
   };
 
   useEffect(() => {
+    setPage(1);
+  }, [filterRole, searchQuery]);
+
+  useEffect(() => {
     const timer = setTimeout(() => {
       fetchUsersAndSchools();
     }, 200);
     return () => clearTimeout(timer);
-  }, [filterRole, searchQuery]);
+  }, [filterRole, searchQuery, page]);
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -183,7 +193,33 @@ export function ManageUsersPage() {
         {isLoading ? (
           <p style={{ padding: 'var(--space-4)', textAlign: 'center' }}>Loading users...</p>
         ) : (
-          <DataTable columns={columns} data={users} keyExtractor={(u) => u.id} emptyMessage="No users found." />
+          <>
+            <DataTable columns={columns} data={users} keyExtractor={(u) => u.id} emptyMessage="No users found." />
+            {meta.totalPages > 1 && (
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: 'var(--space-3) var(--space-4)',
+                borderTop: '1px solid var(--color-neutral-200)',
+                flexWrap: 'wrap',
+                gap: 'var(--space-2)',
+                background: 'var(--color-neutral-50)'
+              }}>
+                <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-neutral-500)' }}>
+                  Showing {users.length} of {meta.total} users (Page {page} of {meta.totalPages})
+                </span>
+                <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
+                  <Button size="sm" variant="ghost" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>
+                    Previous
+                  </Button>
+                  <Button size="sm" variant="ghost" disabled={page >= meta.totalPages} onClick={() => setPage(p => p + 1)}>
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

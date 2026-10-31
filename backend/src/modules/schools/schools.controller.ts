@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import bcrypt from 'bcryptjs';
 import { AppError } from '../../middleware/errorHandler';
 import { CreateSchoolInput, UpdateSchoolInput } from './schools.schema';
 import { logger } from '../../lib/logger';
@@ -9,6 +10,8 @@ import {
   dbCreateSchool,
   dbUpdateSchool,
   dbCreateAuditLog,
+  dbFindUserByEmail,
+  dbCreateUser,
 } from '../../lib/dataDb';
 
 // ─── Slug generation ─────────────────────────────────────────
@@ -98,6 +101,26 @@ export async function createSchool(req: Request, res: Response, next: NextFuncti
     });
 
     logger.info(`School created: ${school.id} (slug: ${slug})`, { userId: req.user?.id });
+
+    // Auto-provision a PRINCIPAL user account for the school if one doesn't exist yet
+    try {
+      const principalEmail = data.contactEmail || `principal.${slug.replace(/-/g, '').toLowerCase()}@eduvanta.local`;
+      const existingPrincipal = await dbFindUserByEmail(principalEmail);
+      if (!existingPrincipal) {
+        const passwordHash = await bcrypt.hash('Eduvanta@123', 10);
+        await dbCreateUser({
+          email: principalEmail,
+          name: data.principalName || `${data.name} Principal`,
+          passwordHash,
+          role: 'PRINCIPAL',
+          schoolId: school.id,
+          isActive: true,
+        });
+        logger.info(`Auto-provisioned principal user account: ${principalEmail} for school ${school.id}`);
+      }
+    } catch (provisionErr: any) {
+      logger.warn('Failed to auto-provision principal account for school', { error: provisionErr?.message });
+    }
 
     // Audit log — school onboarding is critical
     await dbCreateAuditLog({
