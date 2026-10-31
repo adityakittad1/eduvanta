@@ -4,6 +4,7 @@ import { Role } from '@/store/AuthContext';
 export interface User {
   id: string;
   email: string;
+  name?: string | null;
   role: Role;
   schoolId: string | null;
   isActive: boolean;

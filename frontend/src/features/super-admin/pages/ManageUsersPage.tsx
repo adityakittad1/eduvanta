@@ -11,14 +11,21 @@ export function ManageUsersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [selectedRole, setSelectedRole] = useState<'PRINCIPAL' | 'SUPER_ADMIN'>('PRINCIPAL');
+  const [filterRole, setFilterRole] = useState<string>('ALL');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const toast = useToast();
 
   const fetchUsersAndSchools = async () => {
     try {
       setIsLoading(true);
+      const roleParam = filterRole === 'ALL' ? undefined : (filterRole as any);
       const [usersRes, schoolsRes] = await Promise.all([
-        usersApi.getAll({ limit: 50 }),
-        schoolsApi.getAll({ limit: 50 }), // fetch schools for the dropdown
+        usersApi.getAll({ 
+          limit: 100, 
+          role: roleParam,
+          search: searchQuery.trim() || undefined 
+        }),
+        schoolsApi.getAll({ limit: 50 }),
       ]);
       setUsers(usersRes.data);
       setSchools(schoolsRes.data);
@@ -30,8 +37,11 @@ export function ManageUsersPage() {
   };
 
   useEffect(() => {
-    fetchUsersAndSchools();
-  }, []);
+    const timer = setTimeout(() => {
+      fetchUsersAndSchools();
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [filterRole, searchQuery]);
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -70,7 +80,6 @@ export function ManageUsersPage() {
     } catch (error: any) {
       const resData = error.response?.data;
       if (resData?.code === 'VALIDATION_ERROR' && resData.errors) {
-        // Extract the first error message from the Zod error object
         const firstErrorKey = Object.keys(resData.errors)[0];
         const firstErrorMessage = resData.errors[firstErrorKey][0];
         toast.error(firstErrorMessage || 'Validation failed');
@@ -87,6 +96,14 @@ export function ManageUsersPage() {
   };
 
   const columns = [
+    { 
+      header: 'Name', 
+      cell: (u: User) => (
+        <span style={{ fontWeight: 'var(--font-medium)', color: 'var(--color-neutral-900)' }}>
+          {u.name || (u.role === 'SUPER_ADMIN' ? 'System Administrator' : 'Principal')}
+        </span>
+      )
+    },
     { header: 'Email', accessorKey: 'email' as keyof User },
     { 
       header: 'Role', 
@@ -115,6 +132,14 @@ export function ManageUsersPage() {
     },
   ];
 
+  const roleTabs = [
+    { label: 'All Users', value: 'ALL' },
+    { label: 'Principals', value: 'PRINCIPAL' },
+    { label: 'Super Admins', value: 'SUPER_ADMIN' },
+    { label: 'Teachers', value: 'TEACHER' },
+    { label: 'Students', value: 'STUDENT' },
+  ];
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -131,8 +156,35 @@ export function ManageUsersPage() {
         </Button>
       </div>
 
+      {/* Filter and Search Bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-3)' }}>
+        <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+          {roleTabs.map(tab => (
+            <Button
+              key={tab.value}
+              variant={filterRole === tab.value ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={() => setFilterRole(tab.value)}
+            >
+              {tab.label}
+            </Button>
+          ))}
+        </div>
+        <div style={{ position: 'relative', width: 280 }}>
+          <Input
+            placeholder="Search by name or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+
       <div style={{ background: 'var(--color-neutral-0)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-neutral-200)', overflow: 'hidden' }}>
-        {isLoading ? <p style={{ padding: 'var(--space-4)' }}>Loading...</p> : <DataTable columns={columns} data={users} keyExtractor={(u) => u.id} emptyMessage="No users found." />}
+        {isLoading ? (
+          <p style={{ padding: 'var(--space-4)', textAlign: 'center' }}>Loading users...</p>
+        ) : (
+          <DataTable columns={columns} data={users} keyExtractor={(u) => u.id} emptyMessage="No users found." />
+        )}
       </div>
 
       <Modal

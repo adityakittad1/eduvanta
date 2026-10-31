@@ -40,9 +40,10 @@ healthRouter.get('/', async (_req: Request, res: Response) => {
   }
 
   const healthy = dbStatus === 'connected';
+  const httpStatus = healthy ? 200 : 503;
 
-  res.status(200).json({
-    success: true,
+  res.status(httpStatus).json({
+    success: healthy,
     status: healthy ? 'ok' : 'degraded',
     timestamp: new Date().toISOString(),
     database: {
@@ -61,6 +62,35 @@ healthRouter.get('/', async (_req: Request, res: Response) => {
     },
     version: '1.0.0',
     environment: process.env.NODE_ENV ?? 'unknown',
+  });
+});
+
+healthRouter.get('/live', (_req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+healthRouter.get('/ready', async (_req: Request, res: Response) => {
+  let isReady = false;
+  try {
+    if (supabase) {
+      const { data } = await supabase.from('schools').select('id').limit(1);
+      if (data) isReady = true;
+    } else {
+      await prisma.$queryRaw`SELECT 1`;
+      isReady = true;
+    }
+  } catch {
+    isReady = false;
+  }
+
+  res.status(isReady ? 200 : 503).json({
+    success: isReady,
+    status: isReady ? 'ready' : 'unavailable',
+    timestamp: new Date().toISOString(),
   });
 });
 

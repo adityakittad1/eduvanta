@@ -64,8 +64,9 @@ exports.healthRouter.get('/', async (_req, res) => {
         }
     }
     const healthy = dbStatus === 'connected';
-    res.status(200).json({
-        success: true,
+    const httpStatus = healthy ? 200 : 503;
+    res.status(httpStatus).json({
+        success: healthy,
         status: healthy ? 'ok' : 'degraded',
         timestamp: new Date().toISOString(),
         database: {
@@ -84,6 +85,35 @@ exports.healthRouter.get('/', async (_req, res) => {
         },
         version: '1.0.0',
         environment: process.env.NODE_ENV ?? 'unknown',
+    });
+});
+exports.healthRouter.get('/live', (_req, res) => {
+    res.status(200).json({
+        success: true,
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+    });
+});
+exports.healthRouter.get('/ready', async (_req, res) => {
+    let isReady = false;
+    try {
+        if (supabase_1.supabase) {
+            const { data } = await supabase_1.supabase.from('schools').select('id').limit(1);
+            if (data)
+                isReady = true;
+        }
+        else {
+            await prisma_1.prisma.$queryRaw `SELECT 1`;
+            isReady = true;
+        }
+    }
+    catch {
+        isReady = false;
+    }
+    res.status(isReady ? 200 : 503).json({
+        success: isReady,
+        status: isReady ? 'ready' : 'unavailable',
+        timestamp: new Date().toISOString(),
     });
 });
 exports.healthRouter.get('/auth-diag', async (_req, res) => {

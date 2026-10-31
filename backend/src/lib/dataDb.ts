@@ -1053,7 +1053,12 @@ export async function dbGetAllUsers(params: {
       if (params.schoolId) where.schoolId = params.schoolId;
       if (params.allowedRoles) where.role = { in: params.allowedRoles };
       if (params.role) where.role = params.role;
-      if (params.search) where.email = { contains: params.search, mode: 'insensitive' };
+      if (params.search) {
+        where.OR = [
+          { email: { contains: params.search, mode: 'insensitive' as const } },
+          { name: { contains: params.search, mode: 'insensitive' as const } },
+        ];
+      }
 
       const [users, total] = await Promise.all([
         prisma.user.findMany({
@@ -1093,7 +1098,9 @@ export async function dbGetAllUsers(params: {
       if (params.schoolId) query = query.eq('school_id', params.schoolId);
       if (params.allowedRoles && params.allowedRoles.length > 0) query = query.in('role', params.allowedRoles);
       if (params.role) query = query.eq('role', params.role);
-      if (params.search) query = query.ilike('email', `%${params.search}%`);
+      if (params.search) {
+        query = query.or(`email.ilike.%${params.search}%,name.ilike.%${params.search}%`);
+      }
 
       query = query.order('created_at', { ascending: false }).range(params.skip, params.skip + params.take - 1);
 

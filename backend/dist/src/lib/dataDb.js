@@ -994,8 +994,12 @@ async function dbGetAllUsers(params) {
                 where.role = { in: params.allowedRoles };
             if (params.role)
                 where.role = params.role;
-            if (params.search)
-                where.email = { contains: params.search, mode: 'insensitive' };
+            if (params.search) {
+                where.OR = [
+                    { email: { contains: params.search, mode: 'insensitive' } },
+                    { name: { contains: params.search, mode: 'insensitive' } },
+                ];
+            }
             const [users, total] = await Promise.all([
                 prisma_1.prisma.user.findMany({
                     where,
@@ -1036,8 +1040,9 @@ async function dbGetAllUsers(params) {
                 query = query.in('role', params.allowedRoles);
             if (params.role)
                 query = query.eq('role', params.role);
-            if (params.search)
-                query = query.ilike('email', `%${params.search}%`);
+            if (params.search) {
+                query = query.or(`email.ilike.%${params.search}%,name.ilike.%${params.search}%`);
+            }
             query = query.order('created_at', { ascending: false }).range(params.skip, params.skip + params.take - 1);
             const { data, count, error } = await query;
             if (error)
