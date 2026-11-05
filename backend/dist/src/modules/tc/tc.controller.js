@@ -1,4 +1,8 @@
 "use strict";
+/**
+ * Copyright (c) 2026 Aditya Kittad. All Rights Reserved.
+ * Eduvanta - Multi-Tenant School ERP and Digital Campus Platform
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateTcStatus = exports.requestTc = exports.getTcs = void 0;
 const prisma_1 = require("../../lib/prisma");

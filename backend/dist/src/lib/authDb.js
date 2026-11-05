@@ -1,4 +1,8 @@
 "use strict";
+/**
+ * Copyright (c) 2026 Aditya Kittad. All Rights Reserved.
+ * Eduvanta - Multi-Tenant School ERP and Digital Campus Platform
+ */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };

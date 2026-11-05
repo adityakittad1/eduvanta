@@ -1,10 +1,12 @@
 # DESIGN_SYSTEM.md: Visual Design System
 
+**Project:** Eduvanta - Multi-Tenant School ERP Platform  
+**Project Owner & Developer:** Aditya Kittad  
+**Copyright:** © 2026 Aditya Kittad. All Rights Reserved.  
+**Project Type:** B.Tech Final Year Major Project  
+**Repository:** https://github.com/adityakittad1/eduvanta  
+**Live Application:** https://eduvanta-liard.vercel.app  
 **Version:** 1.0
-
-**Last Updated:** 2026-09-24
-
-**Project:** ZP School ERP
 
 ---
 

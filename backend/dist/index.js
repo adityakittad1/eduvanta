@@ -1,4 +1,8 @@
 "use strict";
+/**
+ * Copyright (c) 2026 Aditya Kittad. All Rights Reserved.
+ * Eduvanta - Multi-Tenant School ERP and Digital Campus Platform
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv/config");
 const env_1 = require("./src/config/env");

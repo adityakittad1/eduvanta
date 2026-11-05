@@ -2,13 +2,15 @@
 
 **Project Title:** Data-Driven Student Monitoring and Academic Assistance System for Zilla Parishad Schools
 
-**Product Name:** ZP School ERP
+**Product Name:** Eduvanta (ZP School ERP)
 
-**Version:** 1.0 (Greenfield)
+**Version:** 1.0
 
-**Last Updated:** 2026-09-24
-
-**Author:** Project Team
+**Project Owner & Developer:** Aditya Kittad  
+**Copyright:** © 2026 Aditya Kittad. All Rights Reserved.  
+**Project Type:** B.Tech Final Year Major Project  
+**Repository:** https://github.com/adityakittad1/eduvanta  
+**Live Application:** https://eduvanta-liard.vercel.app
 
 ---
 

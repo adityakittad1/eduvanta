@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2026 Aditya Kittad. All Rights Reserved.
+ * Eduvanta - Multi-Tenant School ERP and Digital Campus Platform
+ */
+
 import axios from 'axios';
 import { getTenantSlug } from '../utils/tenant';
 

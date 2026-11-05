@@ -568,6 +568,9 @@ export function SchoolPublicHome() {
               <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: '#64748b' }}>
                 Zilla Parishad Education Department, Government of Maharashtra
               </p>
+              <p style={{ margin: '0.35rem 0 0 0', fontSize: '0.75rem', color: '#64748b' }}>
+                Powered by Eduvanta • Developed by Aditya Kittad
+              </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', fontSize: '0.9rem' }}>
               <Link to="/schools" style={{ color: '#94a3b8', textDecoration: 'none' }}>School Directory</Link>

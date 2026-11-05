@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2026 Aditya Kittad. All Rights Reserved.
+ * Eduvanta - Multi-Tenant School ERP and Digital Campus Platform
+ */
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/store/AuthContext';
 import { PageHeader, Card, Badge } from '@/components/ui';

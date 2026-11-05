@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2026 Aditya Kittad. All Rights Reserved.
+ * Eduvanta - Multi-Tenant School ERP and Digital Campus Platform
+ */
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { getTenantSlug } from '@/utils/tenant';

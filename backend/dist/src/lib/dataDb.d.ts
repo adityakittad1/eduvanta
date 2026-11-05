@@ -1,3 +1,7 @@
+/**
+ * Copyright (c) 2026 Aditya Kittad. All Rights Reserved.
+ * Eduvanta - Multi-Tenant School ERP and Digital Campus Platform
+ */
 export declare function generateCuid(): string;
 export declare function mapSchool(row: any): any;
 export declare function mapStudent(row: any): any;

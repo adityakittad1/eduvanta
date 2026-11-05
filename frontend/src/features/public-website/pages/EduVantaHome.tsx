@@ -559,7 +559,7 @@ export function EduVantaHome() {
               color: '#64748B',
             }}
           >
-            <div>© {new Date().getFullYear()} EduVanta Multi-Tenant ERP Platform. All rights reserved.</div>
+            <div>© 2026 Eduvanta. All Rights Reserved. • Developed by Aditya Kittad</div>
             <div>B.Tech Final Year Major Project • Initial Deployment: Zilla Parishad Schools</div>
           </div>
         </div>

@@ -1,11 +1,15 @@
 "use strict";
+/**
+ * Copyright (c) 2026 Aditya Kittad. All Rights Reserved.
+ * Eduvanta - Multi-Tenant School ERP and Digital Campus Platform
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.processAiPrompt = exports.getAuthorizedContext = void 0;
 // ============================================================
 // AI Assistant Service
 // Implements role-aware, school-scoped LLM reasoning & context grounding.
 // Complies with PRD.md & ARCHITECTURE.md Security & AI rules.
 // ============================================================
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.processAiPrompt = exports.getAuthorizedContext = void 0;
 const prisma_1 = require("../../lib/prisma");
 const env_1 = require("../../config/env");
 const logger_1 = require("../../lib/logger");

@@ -154,7 +154,7 @@ export function LoginPage() {
           </div>
 
           <p className="login-footer">
-            EduVanta Platform: Multi-Tenant School ERP & Digital Campus
+            © 2026 Eduvanta. All Rights Reserved. • Developed by Aditya Kittad
           </p>
         </div>
       </div>

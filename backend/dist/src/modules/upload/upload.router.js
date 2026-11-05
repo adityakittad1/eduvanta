@@ -25,7 +25,7 @@ try {
 catch {
     // Silent fallback for read-only serverless environments
 }
-const storage = multer_1.default.diskStorage({
+const diskStorage = multer_1.default.diskStorage({
     destination: (req, _file, cb) => {
         const tenantId = req.tenant?.id?.toString() || 'unknown';
         const tenantDir = path_1.default.join(baseUploadDir, tenantId);
@@ -45,6 +45,7 @@ const storage = multer_1.default.diskStorage({
         cb(null, `${sanitizedBase}-${crypto_1.default.randomUUID()}${ext}`);
     },
 });
+const storage = isServerlessEnv ? multer_1.default.memoryStorage() : diskStorage;
 const upload = (0, multer_1.default)({
     storage,
     limits: {

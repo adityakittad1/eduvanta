@@ -21,6 +21,13 @@ export function AppShell() {
             <Outlet />
           </Suspense>
         </main>
+        <footer className="app-platform-footer">
+          <div className="app-platform-footer-inner">
+            <span>© 2026 Eduvanta. All Rights Reserved.</span>
+            <span className="app-platform-footer-dot">•</span>
+            <span>Developed by Aditya Kittad</span>
+          </div>
+        </footer>
       </div>
     </div>
   );

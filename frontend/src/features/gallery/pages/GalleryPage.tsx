@@ -34,6 +34,10 @@ export function GalleryPage() {
 
   const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!fileUrl) {
+      toast.error('Please choose an image file before submitting');
+      return;
+    }
     const formData = new FormData(e.currentTarget);
     try {
       await galleryApi.uploadItem({

@@ -1,230 +1,432 @@
-# AGENTS.md: Coding Agent Rules
+# AI Coding Agent Instructions
+## ZP School ERP
 
-**Version:** 1.0
+**Project:** Eduvanta - Multi-Tenant School ERP Platform  
+**Project Owner & Developer:** Aditya Kittad  
+**Copyright:** © 2026 Aditya Kittad. All Rights Reserved.  
+**Project Type:** B.Tech Final Year Major Project  
+**Repository:** https://github.com/adityakittad1/eduvanta  
+**Live Application:** https://eduvanta-liard.vercel.app  
+You are working on a production-quality B.Tech final-year major project.
 
-**Last Updated:** 2026-09-24
-
-This file defines binding rules for all AI coding agents working on the ZP School ERP project.
+This file defines binding rules for all AI coding agents working on the Eduvanta project.
 Every agent MUST read this file at the start of every session before writing any code.
 
 ---
 
-## 1. Source-of-Truth Hierarchy
+# 1. Primary Objective
 
-Follow this hierarchy when resolving conflicts or ambiguity:
+Build a polished, maintainable and scalable multi-school School ERP.
 
-1. Explicit instruction in the current conversation
-2. This file (AGENTS.md)
-3. PRD.md
-4. ARCHITECTURE.md
-5. DESIGN_SYSTEM.md
-6. Existing working project code
-7. General engineering best practices
+The initial deployment is intended for six sponsored Zilla Parishad schools.
 
-**If a new request conflicts with an existing documented requirement that affects architecture, security, database design, or project scope, STOP. Explain the conflict. Ask for confirmation before proceeding.**
+The architecture must support additional schools without rewriting the application.
 
 ---
 
-## 2. Mandatory First Steps (Every Session)
+# 2. Development Philosophy
 
-Before writing any application code:
+Follow these principles:
 
-1. Read AGENTS.md (this file)
-2. Read PRD.md
-3. Read ARCHITECTURE.md
-4. Read DESIGN_SYSTEM.md
-5. Inspect existing source code structure
-6. Inspect existing package files and dependencies
-7. Inspect existing database migrations/schema
-8. Identify what has already been implemented
-9. Identify what is currently in progress
-
-Do NOT skip this step.
-Do NOT assume the project is in the same state as a previous session.
+1. Do not over-engineer.
+2. Do not create unnecessary features.
+3. Prefer simple, maintainable solutions.
+4. Keep the UI simple even when backend architecture is sophisticated.
+5. Never sacrifice security for development speed.
+6. Do not duplicate logic.
+7. Reuse components.
+8. Keep modules loosely coupled.
+9. Validate data at boundaries.
+10. Never expose secrets.
 
 ---
 
-## 3. No Hallucination / No Assumption Policy
+# 3. Before Coding
 
-Do NOT invent or fabricate:
+Before implementing a new feature:
 
-- Database fields that have no purpose in PRD.md
-- API endpoints not required by a current feature
-- User roles not defined in PRD.md
-- School policies or academic rules
-- Government regulations or integration capabilities
-- Fake statistics, fake school data, fake student data
-- AI capabilities that have not been implemented
-- Technologies, services, or microservices not in ARCHITECTURE.md
-- Unnecessary infrastructure
+1. Inspect the existing project structure.
+2. Identify existing components/services.
+3. Reuse existing patterns.
+4. Check the database schema.
+5. Check authentication and authorization.
+6. Avoid creating duplicate functionality.
 
-When information is missing:
-
-1. Check PRD.md
-2. Check ARCHITECTURE.md
-3. Check existing implementation
-4. If the decision is **low-risk and reversible**: choose the simplest reasonable implementation and document it
-5. If the decision **affects architecture, security, data model, or scope**: ask before proceeding
+Do not rewrite working modules without a strong reason.
 
 ---
 
-## 4. Phase-by-Phase Implementation Rule
+# 4. Multi-School Rule
 
-**DO NOT build everything in one step.**
+This is a multi-school platform.
 
-Follow the phase plan defined in PRD.md / this project's implementation plan.
-Complete and test each phase before moving to the next.
-Do not jump ahead to implement modules that depend on incomplete foundations.
+Every school-owned entity must be associated with a school_id or equivalent tenant identifier.
 
-Current phase status is tracked in `task.md` and the implementation plan artifact.
+Examples:
 
----
+- students
+- teachers
+- classes
+- attendance
+- marks
+- quizzes
+- resources
+- notices
+- gallery
+- TCs
 
-## 5. Database Rules
+Never assume a single school.
 
-- All database changes go through migrations (never raw schema dumps applied manually)
-- Every school-owned entity MUST have a `school_id` foreign key
-- Every query on school-owned entities MUST include a `school_id` filter derived from the authenticated session
-- Never trust `school_id` sent by an untrusted client as the sole authorization check
-- Use meaningful column names; avoid abbreviations
-- Add indexes for all foreign keys and common filter columns
-- Never store binary file content directly in PostgreSQL (use file storage references)
+Never hard-code school names.
 
----
-
-## 6. Backend Rules
-
-- Business logic belongs in the backend, NEVER only in the frontend
-- Every protected endpoint MUST verify: authentication → role → school scope
-- Input validation on every API endpoint (use Zod)
-- No stack traces or sensitive data in API error responses
-- Structured error responses: `{ success: false, message: "...", code: "..." }`
-- Structured success responses: `{ success: true, data: {...} }`
-- Paginate all list endpoints; never return unbounded lists to the browser
-- Environment variables for ALL secrets; never hardcode
-- Use `dotenv` for local; use proper secret injection for production
+Never use global queries for school-owned data without authorization.
 
 ---
 
-## 7. Frontend Rules
+# 5. Authorization
 
-- Frontend authorization (protected routes, UI hiding) is for UX convenience only, NOT security
-- Every API call must handle: loading, success, empty, error states
-- Never leave a blank/broken screen on load failure
-- Use the design system defined in DESIGN_SYSTEM.md; do not invent new styles
-- Do not use inline styles for structural/thematic styling
-- Do not create a new button/input/card style on every page; use shared components
-- All forms must show validation errors clearly
-- Use TypeScript strictly; no `any` unless genuinely necessary and commented
+Always enforce authorization on the backend.
 
----
+Frontend hiding is NOT security.
 
-## 8. Security Rules
+Roles:
 
-- AI API keys MUST live in backend environment variables ONLY, never in frontend code
-- AI requests MUST go through the backend, never directly from browser to LLM
-- LLM must NEVER execute arbitrary SQL; all data retrieval goes through authorized service functions
-- Passwords hashed with bcrypt, never stored plain or with weak hashing
-- JWT secrets in environment variables only
-- File uploads: validate MIME type, file extension, and size on the backend
-- CORS: allow only known origins in production
-- Audit log: all TC issuances, role changes, school onboardings must be logged
+- SUPER_ADMIN
+- PRINCIPAL
+- TEACHER
+- STUDENT
 
----
+Expected access:
 
-## 9. File Storage Rules
+SUPER_ADMIN:
+All schools
 
-- Large binary files (PDFs, images, videos) must NOT be stored as blobs in PostgreSQL
-- Use a file storage solution (local filesystem with path reference OR object storage)
-- Store only the file path / URL reference in the database
-- Validate file type and size before accepting uploads
-- Serve files through authenticated routes where content is sensitive
+PRINCIPAL:
+Own school
+
+TEACHER:
+Own school and assigned classes/subjects
+
+STUDENT:
+Own student record and permitted resources
 
 ---
 
-## 10. AI Assistant Rules
+# 6. Data Privacy
 
-- The AI assistant operates within strict authorization boundaries
-- The data passed to the LLM must be pre-fetched by the backend using authorized queries
-- The LLM receives context, not database credentials or raw SQL execution ability
-- Never pass a student's data to the LLM in a query made by another student
-- Never pass school data across school boundaries
+Student information is sensitive.
 
----
+Never expose:
 
-## 11. Documentation Maintenance
+- student data across schools
+- another student's private records
+- private teacher information
+- internal database identifiers unnecessarily
 
-At the end of every major phase:
-
-- Update PRD.md if requirements changed
-- Update ARCHITECTURE.md if architecture changed
-- Update DESIGN_SYSTEM.md if visual design changed
-- Update AGENTS.md if agent rules changed
-- Update the task.md / implementation_plan.md to reflect phase completion
-- Create CHANGELOG.md entry for the completed phase
-
-Do not let documentation drift from implementation.
+Do not log passwords, tokens, API keys or sensitive student information.
 
 ---
 
-## 12. Code Quality Standards
+# 7. API Rules
 
-- ESLint and Prettier must pass on all committed code
-- TypeScript strict mode: no unresolved type errors
-- No commented-out dead code committed to main
-- No `console.log` left in production paths (use structured logger)
-- All async operations properly error-handled (try/catch or `.catch()`)
-- React components must not fetch data directly; use service/hook abstraction
+Every protected API endpoint must:
 
----
+1. Authenticate request.
+2. Validate role.
+3. Determine school context.
+4. Validate resource ownership.
+5. Validate request data.
+6. Perform operation.
+7. Return safe response.
 
-## 13. What NOT to Do
-
-- Do NOT delete working code without explicit instruction
-- Do NOT replace the established tech stack without strong justification and user approval
-- Do NOT initialize a new framework if one is already correctly configured
-- Do NOT introduce Kubernetes or microservices for complexity's sake
-- Do NOT make architecture decisions silently that affect scope, security, or data model
-- Do NOT build features not in scope for the current phase
-- Do NOT fabricate that a feature works when it has not been tested
-- Do NOT place secrets in frontend code
+Use consistent error responses.
 
 ---
 
-## 14. Established Technology Stack (DO NOT CHANGE WITHOUT APPROVAL)
+# 8. Database Rules
 
-| Layer | Technology |
-|---|---|
-| Frontend | React, TypeScript, Vite |
-| Styling | Vanilla CSS (custom design system per DESIGN_SYSTEM.md) |
-| Backend | Node.js, TypeScript, Express |
-| ORM | Prisma |
-| Database | PostgreSQL |
-| Auth | JWT (access + refresh tokens), bcrypt |
-| Validation | Zod |
-| File Storage | Local filesystem (Phase 1); Object storage path designed for later migration |
-| AI | LLM API (backend only, provider TBD) |
-| Reverse Proxy | Nginx |
-| Containers | Docker, Docker Compose |
-| CI/CD | GitHub Actions |
-| Deployment | Linux |
+Use PostgreSQL.
 
-Do not introduce new technologies (Redis, GraphQL, tRPC, Prisma alternatives, etc.) without explicit approval and a documented rationale.
+Prefer normalized relational data.
 
----
+Use foreign keys.
 
-## 15. Completed Phases Log
+Use indexes for frequently queried fields.
 
-*(Updated as phases are completed)*
+Use timestamps where useful.
 
-| Phase | Description | Status |
-|---|---|---|
-| 0 | Project inspection and planning | ✅ Complete |
-| 1 | Repository foundation | ⬜ Pending |
-| 2 | Authentication + RBAC | ⬜ Pending |
-| 3 | Multi-school architecture | ⬜ Pending |
-| ... | ... | ... |
+Avoid storing structured data as arbitrary JSON when relational fields are more appropriate.
+
+Use transactions for multi-step operations that must remain consistent.
+
+Never delete important records casually.
+
+Prefer soft deletion where historical records matter.
 
 ---
 
-*This file is binding. Do not override it without updating it and documenting the reason.*
+# 9. File Upload Rules
+
+Files include:
+
+- school logos
+- gallery images
+- learning resources
+- generated documents
+
+Validate:
+
+- file type
+- file size
+- ownership
+- upload permissions
+
+Do not trust filename extensions alone.
+
+Do not expose private files publicly unless intended.
+
+Do not store large binary files directly inside PostgreSQL unless there is a specific reason.
+
+Use object/file storage.
+
+---
+
+# 10. AI Assistant Rules
+
+The AI assistant must never receive unrestricted database access.
+
+Never allow the model to directly execute arbitrary SQL.
+
+Use controlled backend functions.
+
+Example:
+
+User asks:
+"What is my attendance?"
+
+Backend:
+authenticate → identify student → fetch attendance → provide context → AI response
+
+Never:
+
+User → AI → raw database
+
+The AI should only receive the minimum data required.
+
+---
+
+# 11. UI Rules
+
+Use the shared design system.
+
+Do not invent random colors, spacing or typography.
+
+Every screen must include appropriate:
+
+- loading state
+- empty state
+- error state
+- success feedback
+
+Forms must have clear validation.
+
+Avoid excessive animations.
+
+Keep rural users in mind.
+
+---
+
+# 12. Responsive Design
+
+The application must work on:
+
+- desktop
+- tablet
+- mobile
+
+Teachers may primarily use phones.
+
+Do not build desktop-only workflows.
+
+---
+
+# 13. Code Quality
+
+Use:
+
+- TypeScript
+- meaningful names
+- small reusable functions
+- reusable components
+- clear folder structure
+
+Avoid:
+
+- giant components
+- duplicated logic
+- unexplained magic numbers
+- unnecessary dependencies
+- dead code
+- temporary hacks in production paths
+
+---
+
+# 14. Error Handling
+
+Never silently fail.
+
+Display useful user-facing messages.
+
+Log useful technical information server-side.
+
+Do not expose stack traces or internal implementation details to users.
+
+---
+
+# 15. Environment Variables
+
+Secrets must never be committed.
+
+Use:
+
+.env.local
+.env.example
+
+The `.env.example` file may contain variable names but never real secrets.
+
+Examples:
+
+DATABASE_URL=
+AI_API_KEY=
+STORAGE_URL=
+
+---
+
+# 16. Git Rules
+
+Use meaningful commits.
+
+Examples:
+
+feat: add student management
+feat: implement attendance module
+fix: enforce school-level authorization
+feat: add learning resource uploads
+ci: add docker build workflow
+
+Do not commit:
+
+- secrets
+- production credentials
+- generated node_modules
+- unnecessary binaries
+
+---
+
+# 17. Docker Rules
+
+Each service must have a clear responsibility.
+
+Prefer a small number of containers.
+
+Do not create microservices unnecessarily.
+
+Local development should be easy.
+
+Docker Compose should allow the development stack to start consistently.
+
+---
+
+# 18. CI/CD
+
+GitHub Actions should eventually perform:
+
+1. Install dependencies
+2. Lint
+3. Test
+4. Build
+5. Build Docker image
+6. Deploy where configured
+
+CI failures should be fixed before adding unrelated features.
+
+---
+
+# 19. Testing
+
+Prioritize tests for:
+
+- authentication
+- authorization
+- school isolation
+- attendance calculations
+- academic calculations
+- early-warning rules
+- TC generation
+- important API endpoints
+
+Do not chase arbitrary test coverage numbers.
+
+Test business-critical behavior.
+
+---
+
+# 20. Do Not Add Features Automatically
+
+Do not introduce:
+
+- facial recognition
+- handwritten OCR attendance
+- payment systems
+- parent apps
+- Kubernetes
+- custom LLM training
+- unnecessary AI agents
+
+unless explicitly requested.
+
+---
+
+# 21. Build Strategy
+
+Implement in this order:
+
+1. Project foundation
+2. Authentication
+3. Multi-school architecture
+4. School profile
+5. Students
+6. Teachers
+7. Classes/subjects
+8. Attendance
+9. Academics
+10. Analytics
+11. Early Warning
+12. Quizzes
+13. Learning Resources
+14. Notices
+15. TC
+16. AI Assistant
+17. Reports
+18. Docker
+19. CI/CD
+20. Deployment and polish
+
+---
+
+# 22. Important
+
+Do not make the product look like a generic admin dashboard template.
+
+It should feel like a cohesive education platform.
+
+Prioritize:
+
+- clarity
+- consistency
+- usability
+- trust
+- accessibility
+- professional visual hierarchy
+
+The final result must be appropriate for a B.Tech final-year major project and potentially usable by real schools.

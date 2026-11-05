@@ -18,10 +18,12 @@ async function handleUpload(req, res, next) {
         if (!schoolId) {
             throw new errorHandler_1.AppError('No tenant context', 400, 'BAD_REQUEST');
         }
+        // Determine file buffer and filename safely for both memory and disk storage
+        const fileBuffer = file.buffer || (file.path && fs_1.default.existsSync(file.path) ? fs_1.default.readFileSync(file.path) : Buffer.from([]));
+        const filename = file.filename || `${Date.now()}-${file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
         // If Supabase is configured, upload the file to Supabase Storage
         if (supabase_1.supabase) {
-            const fileBuffer = fs_1.default.readFileSync(file.path);
-            const filePath = `${schoolId}/${file.filename}`;
+            const filePath = `${schoolId}/${filename}`;
             let uploadRes = await supabase_1.supabase.storage
                 .from('eduvanta-assets')
                 .upload(filePath, fileBuffer, {
@@ -44,11 +46,13 @@ async function handleUpload(req, res, next) {
                 }
             }
             if (!uploadRes.error) {
-                // Cleanup local temp file
-                try {
-                    fs_1.default.unlinkSync(file.path);
+                // Cleanup local temp file if it was on disk
+                if (file.path && fs_1.default.existsSync(file.path)) {
+                    try {
+                        fs_1.default.unlinkSync(file.path);
+                    }
+                    catch { }
                 }
-                catch { }
                 const { data: publicUrlData } = supabase_1.supabase.storage
                     .from('eduvanta-assets')
                     .getPublicUrl(filePath);
@@ -56,7 +60,7 @@ async function handleUpload(req, res, next) {
                     success: true,
                     data: {
                         url: publicUrlData.publicUrl,
-                        filename: file.filename,
+                        filename: filename,
                         originalName: file.originalname,
                         size: file.size,
                         mimetype: file.mimetype,
@@ -67,17 +71,19 @@ async function handleUpload(req, res, next) {
             }
             // If Supabase storage is unavailable or bucket not permitted, provide safe data URL fallback for images
             if (file.mimetype.startsWith('image/') && fileBuffer.length <= 10 * 1024 * 1024) {
-                try {
-                    fs_1.default.unlinkSync(file.path);
+                if (file.path && fs_1.default.existsSync(file.path)) {
+                    try {
+                        fs_1.default.unlinkSync(file.path);
+                    }
+                    catch { }
                 }
-                catch { }
                 const base64 = fileBuffer.toString('base64');
                 const dataUrl = `data:${file.mimetype};base64,${base64}`;
                 res.status(201).json({
                     success: true,
                     data: {
                         url: dataUrl,
-                        filename: file.filename,
+                        filename: filename,
                         originalName: file.originalname,
                         size: file.size,
                         mimetype: file.mimetype,
@@ -90,12 +96,12 @@ async function handleUpload(req, res, next) {
         }
         // Fallback: Local Storage (For Dev only)
         // Create the final relative URL for local access
-        const fileUrl = `${env_1.env.FRONTEND_URL}/api/v1/upload/${schoolId}/${file.filename}`;
+        const fileUrl = `${env_1.env.FRONTEND_URL}/api/v1/upload/${schoolId}/${filename}`;
         res.status(201).json({
             success: true,
             data: {
                 url: fileUrl,
-                filename: file.filename,
+                filename: filename,
                 originalName: file.originalname,
                 size: file.size,
                 mimetype: file.mimetype,
