@@ -185,8 +185,8 @@ export function GalleryPage() {
                       const url = await uploadFile(file);
                       setFileUrl(url);
                       toast.success('Image uploaded successfully');
-                    } catch {
-                      toast.error('Failed to upload image file');
+                    } catch (err: any) {
+                      toast.error(err?.response?.data?.message || err?.message || 'Failed to upload image file');
                     } finally {
                       setIsUploadingFile(false);
                     }

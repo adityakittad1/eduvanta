@@ -119,6 +119,7 @@ async function createNotice(req, res, next) {
         // Fallback via Supabase
         if (supabase_1.supabase) {
             const noticeId = (0, dataDb_1.generateCuid)();
+            const nowIso = new Date().toISOString();
             const { data: newNotice, error } = await supabase_1.supabase.from('notices').insert({
                 id: noticeId,
                 school_id: schoolId,
@@ -129,7 +130,9 @@ async function createNotice(req, res, next) {
                 status: data.status || 'PUBLISHED',
                 visibility: data.visibility === 'PUBLIC' ? 'PUBLIC' : 'INTERNAL',
                 created_by_user_id: req.user.id,
-                published_at: new Date().toISOString()
+                published_at: nowIso,
+                created_at: nowIso,
+                updated_at: nowIso
             }).select().single();
             if (error)
                 throw new errorHandler_1.AppError('Failed to publish notice: ' + error.message, 500, 'INTERNAL_ERROR');

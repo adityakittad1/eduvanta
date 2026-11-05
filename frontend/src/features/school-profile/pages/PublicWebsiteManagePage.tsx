@@ -353,8 +353,8 @@ export function PublicWebsiteManagePage() {
                             const url = await uploadFile(file);
                             setProfileForm(p => ({ ...p, logoUrl: url }));
                             toast.success('Logo uploaded');
-                          } catch {
-                            toast.error('Failed to upload logo');
+                          } catch (err: any) {
+                            toast.error(err?.response?.data?.message || err?.message || 'Failed to upload logo');
                           }
                         }}
                       />

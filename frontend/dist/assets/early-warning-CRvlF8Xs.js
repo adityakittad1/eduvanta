@@ -1,0 +1,1 @@
+import{b as t}from"./index-D9elR7pU.js";const i={getFlags:async a=>{const n=a?`/early-warning?classId=${a}`:"/early-warning",{data:r}=await t.get(n);return r.data},runEvaluation:async a=>{const{data:n}=await t.post("/early-warning/evaluate",{classId:a});return n}};export{i as e};
