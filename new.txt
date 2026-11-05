@@ -1,5 +1,5 @@
 ============================================================
-FINAL PRODUCT REQUIREMENT — MULTI-SCHOOL PUBLIC WEBSITE SYSTEM
+FINAL PRODUCT REQUIREMENT: MULTI-SCHOOL PUBLIC WEBSITE SYSTEM
 ============================================================
 
 IMPORTANT:
@@ -238,7 +238,7 @@ Example:
 
 Principal creates announcement:
 
-"Annual Sports Day — 15 October"
+"Annual Sports Day: 15 October"
 
 The principal can choose:
 

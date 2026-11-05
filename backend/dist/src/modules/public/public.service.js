@@ -1,7 +1,7 @@
 "use strict";
 // ============================================================
 // Public Website Service
-// Fetches ONLY publicly-safe data — no auth required.
+// Fetches ONLY publicly-safe data, no auth required.
 // Dual-path: Uses Prisma with fallback to Supabase REST client.
 // ============================================================
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -11,7 +11,7 @@ const supabase_1 = require("../../lib/supabase");
 const authDb_1 = require("../../lib/authDb");
 const errorHandler_1 = require("../../middleware/errorHandler");
 const logger_1 = require("../../lib/logger");
-// Resolve school by slug or id — returns schoolId or throws
+// Resolve school by slug or id: returns schoolId or throws
 async function resolvePublicSchool(slug) {
     if ((0, authDb_1.isPrismaAvailable)()) {
         try {

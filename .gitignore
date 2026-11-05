@@ -8,7 +8,7 @@ dist/
 build/
 .next/
 
-# Environment variables — NEVER commit
+# Environment variables: NEVER commit
 .env
 .env.*
 !.env.example

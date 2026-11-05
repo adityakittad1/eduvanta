@@ -86,7 +86,7 @@ export function AppRouter() {
           <AppDocumentTitle />
           <ToastProvider>
             <Routes>
-              {/* ── Public routes — No auth required ──────── */}
+              {/* ── Public routes: No auth required ──────── */}
               <Route path="/" element={<TenantHomeRouter />} />
               <Route path="/schools" element={<SchoolDirectoryPage />} />
               <Route path="/school/:slug" element={<SchoolPublicHome />} />
@@ -98,7 +98,7 @@ export function AppRouter() {
                 <PublicRoute><LoginPage /></PublicRoute>
               } />
 
-              {/* Protected routes — App Shell */}
+              {/* Protected routes: App Shell */}
               <Route path="/erp" element={
                 <ProtectedRoute><AppShell /></ProtectedRoute>
               }>
@@ -237,7 +237,7 @@ export function AppRouter() {
                   </ProtectedRoute>
                 } />
 
-                {/* Public Website Management — PRINCIPAL only */}
+                {/* Public Website Management: PRINCIPAL only */}
                 <Route path="public-website" element={
                   <ProtectedRoute allowedRoles={['PRINCIPAL']}>
                     <PublicWebsiteManagePage />

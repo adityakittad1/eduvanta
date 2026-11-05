@@ -236,7 +236,7 @@ export function EduVantaHome() {
               </div>
               <h3 className="public-facility-name">Student 360° Profile</h3>
               <p className="public-facility-desc">
-                Holistic view of student performance — tracking daily attendance records, assessment marks, progress
+                Holistic view of student performance, tracking daily attendance records, assessment marks, progress
                 trajectories, quiz attempts, and teacher feedback in one unified record.
               </p>
             </div>

@@ -1,6 +1,6 @@
 "use strict";
 // ============================================================
-// Public Website Router — No authentication required
+// Public Website Router: No authentication required
 // These routes serve the public school website.
 // ============================================================
 Object.defineProperty(exports, "__esModule", { value: true });

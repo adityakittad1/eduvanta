@@ -26,7 +26,7 @@ async function runCrudAudit() {
   const results = [];
   function log(name, passed, detail = '') {
     results.push({ name, passed, detail });
-    console.log(`[${passed ? 'PASS' : 'FAIL'}] ${name} ${detail ? '— ' + detail : ''}`);
+    console.log(`[${passed ? 'PASS' : 'FAIL'}] ${name} ${detail ? ': ' + detail : ''}`);
   }
 
   console.log('====================================================');

@@ -14,7 +14,7 @@ function validateRequest(schema) {
             cookies: req.cookies,
         });
         if (!result.success) {
-            next(result.error); // ZodError — handled by errorHandler
+            next(result.error); // ZodError, handled by errorHandler
             return;
         }
         // Merge validated data back onto request

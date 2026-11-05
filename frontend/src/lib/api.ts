@@ -15,7 +15,7 @@ export const api = (() => {
   return instance;
 })();
 
-// Request interceptor — attach token and tenant slug dynamically
+// Request interceptor: attach token and tenant slug dynamically
 api.interceptors.request.use((config) => {
   const token = sessionStorage.getItem('accessToken');
   if (token && !config.headers.Authorization) {
@@ -28,7 +28,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor — handle 401 by attempting token refresh
+// Response interceptor: handle 401 by attempting token refresh
 let isRefreshing = false;
 let refreshQueue: Array<(token: string) => void> = [];
 
@@ -69,7 +69,7 @@ api.interceptors.response.use(
         originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch {
-        // Refresh failed — clear session
+        // Refresh failed: clear session
         sessionStorage.removeItem('accessToken');
         delete api.defaults.headers.common['Authorization'];
         refreshQueue = [];

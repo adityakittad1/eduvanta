@@ -21,7 +21,7 @@ export function SchoolDirectoryPage() {
   }, []);
 
   useEffect(() => {
-    document.title = 'EduVanta — School Directory';
+    document.title = 'EduVanta: School Directory';
     loadSchools();
   }, [loadSchools]);
 
@@ -53,7 +53,7 @@ export function SchoolDirectoryPage() {
             </div>
             <div>
               <div className="public-header-school-name">EduVanta</div>
-              <div className="public-header-tagline">Schools Directory — Maharashtra</div>
+              <div className="public-header-tagline">Schools Directory: Maharashtra</div>
             </div>
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
@@ -257,7 +257,7 @@ export function SchoolDirectoryPage() {
       {/* Footer */}
       <footer className="public-footer" style={{ marginTop: 'auto' }}>
         <div className="public-footer-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <div className="public-footer-attr">EduVanta — Multi-Tenant Education ERP</div>
+          <div className="public-footer-attr">EduVanta: Multi-Tenant Education ERP</div>
           <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
             <Link to="/" style={{ color: 'var(--color-neutral-400)', fontSize: 'var(--text-sm)', textDecoration: 'none' }}>Platform Home</Link>
             <Link to="/erp/login" style={{ color: 'var(--color-neutral-400)', fontSize: 'var(--text-sm)', textDecoration: 'none' }}>Staff Login</Link>

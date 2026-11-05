@@ -41,7 +41,7 @@ export function LoginPage() {
 
   return (
     <div className="login-page">
-      {/* Left panel — branding */}
+      {/* Left panel: branding */}
       <div className="login-brand" aria-hidden="true">
         <div className="login-brand-content">
           <div className="login-brand-logo">
@@ -72,7 +72,7 @@ export function LoginPage() {
         </div>
       </div>
 
-      {/* Right panel — form */}
+      {/* Right panel: form */}
       <div className="login-form-panel">
         <div className="login-form-container">
           <div className="login-form-header">
@@ -154,7 +154,7 @@ export function LoginPage() {
           </div>
 
           <p className="login-footer">
-            EduVanta Platform &mdash; Multi-Tenant School ERP & Digital Campus
+            EduVanta Platform: Multi-Tenant School ERP & Digital Campus
           </p>
         </div>
       </div>

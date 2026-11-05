@@ -306,7 +306,7 @@ function generateContextualFallback(userPrompt: string, context: any, user: User
       }
     }
 
-    const studentRoster = students.map((s: any) => `• **${s.firstName} ${s.lastName}** (${s.admissionNumber}) — ${s.class ? `${s.class.name}-${s.class.division}` : 'Class 5'}`).join('\n');
+    const studentRoster = students.map((s: any) => `• **${s.firstName} ${s.lastName}** (${s.admissionNumber}): ${s.class ? `${s.class.name}-${s.class.division}` : 'Class 5'}`).join('\n');
     return `📊 **Student Enrollment Summary for ${school.name}**:\n• **Total Enrolled Students**: ${school._count.students}\n• **Active Classes**: ${school.classes.map((c: any) => `${c.name}-${c.division || 'A'}`).join(', ')}\n\n**Current Enrolled Students:**\n${studentRoster || 'No active students recorded.'}\n\nLet me know if you need academic or attendance records for any individual student.`;
   }
 
@@ -321,7 +321,7 @@ function generateContextualFallback(userPrompt: string, context: any, user: User
 
   // Teachers / Faculty
   if (p.includes('teacher') || p.includes('faculty') || p.includes('staff')) {
-    const teacherList = teachers.map((t: any) => `• **${t.firstName} ${t.lastName}** (${t.qualification || 'Faculty'}) — ID: \`${t.employeeId || 'T001'}\``).join('\n');
+    const teacherList = teachers.map((t: any) => `• **${t.firstName} ${t.lastName}** (${t.qualification || 'Faculty'}), ID: \`${t.employeeId || 'T001'}\``).join('\n');
     return `👨‍🏫 **Faculty & Staff at ${school.name}**:\n• **Total Active Teachers**: ${school._count.teachers}\n\n${teacherList || 'Faculty roster is currently being synchronized.'}\n\nAll teachers are registered with the Zilla Parishad education portal.`;
   }
 
@@ -334,7 +334,7 @@ function generateContextualFallback(userPrompt: string, context: any, user: User
   // Events / Calendar
   if (p.includes('event') || p.includes('calendar') || p.includes('sports') || p.includes('exhibition') || p.includes('schedule')) {
     if (school.events && school.events.length > 0) {
-      const evList = school.events.map((e: any) => `• **${e.title}** — ${new Date(e.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}\n  ${e.description || ''}`).join('\n\n');
+      const evList = school.events.map((e: any) => `• **${e.title}**: ${new Date(e.eventDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}\n  ${e.description || ''}`).join('\n\n');
       return `📅 **Upcoming Events at ${school.name}**:\n\n${evList}`;
     }
     return `📅 Currently no public events are scheduled for ${school.name}. You can add upcoming sports days or science fairs in the ERP portal.`;

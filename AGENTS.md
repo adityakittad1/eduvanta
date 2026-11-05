@@ -1,4 +1,4 @@
-# AGENTS.md — Coding Agent Rules
+# AGENTS.md: Coding Agent Rules
 
 **Version:** 1.0
 
@@ -21,7 +21,7 @@ Follow this hierarchy when resolving conflicts or ambiguity:
 6. Existing working project code
 7. General engineering best practices
 
-**If a new request conflicts with an existing documented requirement that affects architecture, security, database design, or project scope — STOP. Explain the conflict. Ask for confirmation before proceeding.**
+**If a new request conflicts with an existing documented requirement that affects architecture, security, database design, or project scope, STOP. Explain the conflict. Ask for confirmation before proceeding.**
 
 ---
 
@@ -94,37 +94,37 @@ Current phase status is tracked in `task.md` and the implementation plan artifac
 
 ## 6. Backend Rules
 
-- Business logic belongs in the backend — NEVER only in the frontend
+- Business logic belongs in the backend, NEVER only in the frontend
 - Every protected endpoint MUST verify: authentication → role → school scope
 - Input validation on every API endpoint (use Zod)
 - No stack traces or sensitive data in API error responses
 - Structured error responses: `{ success: false, message: "...", code: "..." }`
 - Structured success responses: `{ success: true, data: {...} }`
-- Paginate all list endpoints — never return unbounded lists to the browser
-- Environment variables for ALL secrets — never hardcode
+- Paginate all list endpoints; never return unbounded lists to the browser
+- Environment variables for ALL secrets; never hardcode
 - Use `dotenv` for local; use proper secret injection for production
 
 ---
 
 ## 7. Frontend Rules
 
-- Frontend authorization (protected routes, UI hiding) is for UX convenience only — NOT security
+- Frontend authorization (protected routes, UI hiding) is for UX convenience only, NOT security
 - Every API call must handle: loading, success, empty, error states
 - Never leave a blank/broken screen on load failure
-- Use the design system defined in DESIGN_SYSTEM.md — do not invent new styles
+- Use the design system defined in DESIGN_SYSTEM.md; do not invent new styles
 - Do not use inline styles for structural/thematic styling
-- Do not create a new button/input/card style on every page — use shared components
+- Do not create a new button/input/card style on every page; use shared components
 - All forms must show validation errors clearly
-- Use TypeScript strictly — no `any` unless genuinely necessary and commented
+- Use TypeScript strictly; no `any` unless genuinely necessary and commented
 
 ---
 
 ## 8. Security Rules
 
-- AI API keys MUST live in backend environment variables ONLY — never in frontend code
-- AI requests MUST go through the backend — never directly from browser to LLM
-- LLM must NEVER execute arbitrary SQL — all data retrieval goes through authorized service functions
-- Passwords hashed with bcrypt — never stored plain or with weak hashing
+- AI API keys MUST live in backend environment variables ONLY, never in frontend code
+- AI requests MUST go through the backend, never directly from browser to LLM
+- LLM must NEVER execute arbitrary SQL; all data retrieval goes through authorized service functions
+- Passwords hashed with bcrypt, never stored plain or with weak hashing
 - JWT secrets in environment variables only
 - File uploads: validate MIME type, file extension, and size on the backend
 - CORS: allow only known origins in production
@@ -146,7 +146,7 @@ Current phase status is tracked in `task.md` and the implementation plan artifac
 
 - The AI assistant operates within strict authorization boundaries
 - The data passed to the LLM must be pre-fetched by the backend using authorized queries
-- The LLM receives context — not database credentials or raw SQL execution ability
+- The LLM receives context, not database credentials or raw SQL execution ability
 - Never pass a student's data to the LLM in a query made by another student
 - Never pass school data across school boundaries
 
@@ -174,7 +174,7 @@ Do not let documentation drift from implementation.
 - No commented-out dead code committed to main
 - No `console.log` left in production paths (use structured logger)
 - All async operations properly error-handled (try/catch or `.catch()`)
-- React components must not fetch data directly — use service/hook abstraction
+- React components must not fetch data directly; use service/hook abstraction
 
 ---
 

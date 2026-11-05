@@ -1,6 +1,6 @@
 // ============================================================
 // Public Website API client
-// No authentication headers — these are public endpoints
+// No authentication headers: these are public endpoints
 // ============================================================
 
 const API_BASE = '/api/v1';

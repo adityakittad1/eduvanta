@@ -1,5 +1,5 @@
 /* ============================================================
-   ZP School ERP — CSS Custom Properties (Design Tokens)
+   ZP School ERP: CSS Custom Properties (Design Tokens)
    Source: DESIGN_SYSTEM.md
    ============================================================ */
 
@@ -30,28 +30,28 @@
   --color-neutral-800: #1E293B;
   --color-neutral-900: #0F172A;
 
-  /* ── Semantic — Success ──────────────────────────────────── */
+  /* ── Semantic: Success ──────────────────────────────────── */
   --color-success-50:  #F0FDF4;
   --color-success-100: #DCFCE7;
   --color-success-500: #22C55E;
   --color-success-600: #16A34A;
   --color-success-700: #15803D;
 
-  /* ── Semantic — Warning ──────────────────────────────────── */
+  /* ── Semantic: Warning ──────────────────────────────────── */
   --color-warning-50:  #FFFBEB;
   --color-warning-100: #FEF3C7;
   --color-warning-500: #F59E0B;
   --color-warning-600: #D97706;
   --color-warning-700: #B45309;
 
-  /* ── Semantic — Danger ───────────────────────────────────── */
+  /* ── Semantic: Danger ───────────────────────────────────── */
   --color-danger-50:   #FFF1F2;
   --color-danger-100:  #FFE4E6;
   --color-danger-500:  #EF4444;
   --color-danger-600:  #DC2626;
   --color-danger-700:  #B91C1C;
 
-  /* ── Semantic — Info ─────────────────────────────────────── */
+  /* ── Semantic: Info ─────────────────────────────────────── */
   --color-info-50:     #EFF6FF;
   --color-info-500:    #3B82F6;
   --color-info-600:    #2563EB;

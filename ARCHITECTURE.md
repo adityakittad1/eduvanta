@@ -1,16 +1,16 @@
-# ARCHITECTURE.md — Technical Architecture
+# ARCHITECTURE.md: Technical Architecture
 
 **Version:** 1.0 (Greenfield Baseline)
 
 **Last Updated:** 2026-09-24
 
-**Project:** ZP School ERP — Data-Driven Student Monitoring and Academic Assistance System
+**Project:** ZP School ERP: Data-Driven Student Monitoring and Academic Assistance System
 
 ---
 
 ## 1. Architecture Overview
 
-ZP School ERP is a multi-tenant, multi-school web application with a REST API backend and a React frontend. The architecture is intentionally straightforward — a clean monolith for the backend and a single-page application for the frontend — containerized with Docker and deployed behind Nginx.
+ZP School ERP is a multi-tenant, multi-school web application with a REST API backend and a React frontend. The architecture is intentionally straightforward: a clean monolith for the backend and a single-page application for the frontend, containerized with Docker and deployed behind Nginx.
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
@@ -47,7 +47,7 @@ ZP School ERP is a multi-tenant, multi-school web application with a REST API ba
            ▼
 ┌──────────────────────┐
 │     LLM API          │
-│  (External — backend │
+│  (External / backend │
 │   calls only)        │
 └──────────────────────┘
 ```
@@ -169,7 +169,7 @@ This is a critical architectural requirement. **Every school-owned entity carrie
 Request → JWT middleware → decode userId and role
         → If TEACHER/PRINCIPAL/STUDENT: load user's school_id from DB
         → Attach { userId, role, schoolId } to req.user
-        → All subsequent queries use req.user.schoolId — never client-supplied schoolId
+        → All subsequent queries use req.user.schoolId, never client-supplied schoolId
 ```
 
 ### 4.3 SUPER_ADMIN Context
@@ -319,7 +319,7 @@ refresh_tokens
   id, user_id, token_hash, expires_at, created_at, revoked_at
 
 students
-  id, school_id, user_id (nullable — for student login), admission_number,
+  id, school_id, user_id (nullable for student login), admission_number,
   first_name, last_name, date_of_birth, gender, address,
   class_id, enrollment_date, is_active, created_at, updated_at
 
@@ -414,7 +414,7 @@ school_achievements
 User message (text)
        │
        ▼
-Frontend (sends to backend — authenticated)
+Frontend (sends to backend, authenticated)
        │
        ▼
 Backend: /api/v1/ai/chat
@@ -509,7 +509,7 @@ Response:
 |---|---|---|
 | Shared DB multi-tenancy (school_id per row) | Simpler than schema-per-tenant for initial 6 schools; easier migrations | 2026-09-24 |
 | Prisma ORM | Type-safe, migration support, strong TS integration | 2026-09-24 |
-| Vanilla CSS (no Tailwind) | Per DESIGN_SYSTEM.md — full visual control, no utility class bloat | 2026-09-24 |
+| Vanilla CSS (no Tailwind) | Per DESIGN_SYSTEM.md: full visual control, no utility class bloat | 2026-09-24 |
 | Local filesystem storage (Phase 1) | Simple, no external dependency; abstraction layer allows future migration | 2026-09-24 |
 | Express (not Fastify/Nest) | Lightweight, well-known, appropriate for project complexity | 2026-09-24 |
 | Zod validation | TypeScript-native, composable, works well with Express | 2026-09-24 |

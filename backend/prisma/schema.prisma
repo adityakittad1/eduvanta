@@ -1,5 +1,5 @@
 // ============================================================
-// ZP School ERP — Prisma Schema
+// ZP School ERP: Prisma Schema
 // Source of truth for the database structure.
 // Run: npx prisma migrate dev --name <migration-name>
 // ============================================================
@@ -147,7 +147,7 @@ model School {
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
-  name         String?  // Display name (full name) — used for greetings, profiles
+  name         String?  // Display name (full name), used for greetings, profiles
   passwordHash String   @map("password_hash")
   role         Role
   schoolId     String?  @map("school_id")

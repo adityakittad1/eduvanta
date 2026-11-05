@@ -122,7 +122,7 @@ export async function createSchool(req: Request, res: Response, next: NextFuncti
       logger.warn('Failed to auto-provision principal account for school', { error: provisionErr?.message });
     }
 
-    // Audit log — school onboarding is critical
+    // Audit log: school onboarding is critical
     await dbCreateAuditLog({
       userId: req.user!.id,
       action: 'SCHOOL_CREATED',

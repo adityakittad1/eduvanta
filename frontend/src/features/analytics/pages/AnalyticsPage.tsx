@@ -305,7 +305,7 @@ export function AnalyticsPage() {
                       {f.student ? `${f.student.firstName} ${f.student.lastName}` : 'Student'}
                     </div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--color-neutral-500)' }}>
-                      {f.flagType.replace(/_/g, ' ')} — Actual: {f.details.actual}% (Min: {f.details.threshold}%)
+                      {f.flagType.replace(/_/g, ' ')}: Actual: {f.details.actual}% (Min: {f.details.threshold}%)
                     </div>
                   </div>
                 </div>

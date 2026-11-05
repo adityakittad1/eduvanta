@@ -67,7 +67,7 @@ async function getTeacherById(req, res, next) {
 exports.getTeacherById = getTeacherById;
 async function createTeacher(req, res, next) {
     try {
-        // SECURITY: schoolId ALWAYS comes from authenticated user — never trusted from client body
+        // SECURITY: schoolId ALWAYS comes from authenticated user, never trusted from client body
         const schoolId = req.tenant.id;
         if (!schoolId)
             throw new errorHandler_1.AppError('No school context', 400, 'BAD_REQUEST');
@@ -101,7 +101,7 @@ async function createTeacher(req, res, next) {
                 throw new errorHandler_1.AppError('This email is already associated with another account', 400, 'DUPLICATE_EMAIL');
             }
         }
-        // Default password: Teacher@123 — principal should communicate this to the teacher
+        // Default password: Teacher@123; principal should communicate this to the teacher
         const passwordHash = await bcryptjs_1.default.hash('Teacher@123', 10);
         const user = await (0, dataDb_1.dbCreateUser)({
             email: emailToUse,

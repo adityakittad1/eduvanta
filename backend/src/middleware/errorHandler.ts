@@ -61,7 +61,7 @@ export function errorHandler(
     return;
   }
 
-  // Unknown errors — log full details
+  // Unknown errors: log full details
   logger.error('Unhandled error', {
     error: err.message,
     stack: err.stack,

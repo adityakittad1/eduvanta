@@ -46,14 +46,14 @@ async function uploadGalleryItem(req, res, next) {
     }
 }
 exports.uploadGalleryItem = uploadGalleryItem;
-// PATCH /gallery/:id — update isPublic flag (and optionally other fields)
+// PATCH /gallery/:id: update isPublic flag (and optionally other fields)
 async function updateGalleryItem(req, res, next) {
     try {
         const schoolId = req.tenant.id;
         if (!schoolId)
             throw new errorHandler_1.AppError('No school context', 400, 'BAD_REQUEST');
         const id = req.params.id;
-        // Verify ownership — gallery item must belong to this school
+        // Verify ownership: gallery item must belong to this school
         const existing = await prisma_1.prisma.galleryItem.findUnique({ where: { id } });
         if (!existing || existing.schoolId !== schoolId) {
             throw new errorHandler_1.AppError('Gallery item not found', 404, 'NOT_FOUND');

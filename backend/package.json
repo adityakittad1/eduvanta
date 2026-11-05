@@ -1,7 +1,7 @@
 {
   "name": "zp-school-erp-backend",
   "version": "1.0.0",
-  "description": "ZP School ERP — Backend API (Node.js + Express + TypeScript + Prisma)",
+  "description": "ZP School ERP: Backend API (Node.js + Express + TypeScript + Prisma)",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch index.ts",

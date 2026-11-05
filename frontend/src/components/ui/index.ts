@@ -1,4 +1,4 @@
-// UI Component Library — Barrel Export
+// UI Component Library: Barrel Export
 // Import from '@/components/ui' in feature code
 
 export { Button } from './Button/Button';

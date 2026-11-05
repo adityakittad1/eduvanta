@@ -60,7 +60,7 @@ ZP School ERP is a production-quality, multi-school Education Resource Planning 
 
 - SUPER_ADMIN can onboard a new school without code changes
 - Each school has an isolated data boundary
-- School context is derived from authenticated session — not trusted from client
+- School context is derived from authenticated session, not trusted from client
 
 ### 3.2 Authentication & RBAC
 

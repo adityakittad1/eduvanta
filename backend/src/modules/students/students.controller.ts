@@ -67,7 +67,7 @@ export async function getStudentById(req: Request, res: Response, next: NextFunc
 
 export async function createStudent(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    // SECURITY: schoolId ALWAYS comes from authenticated user — never trusted from client body
+    // SECURITY: schoolId ALWAYS comes from authenticated user, never trusted from client body
     const schoolId = req.tenant!.id;
     if (!schoolId) throw new AppError('No school context', 400, 'BAD_REQUEST');
 
@@ -108,14 +108,14 @@ export async function createStudent(req: Request, res: Response, next: NextFunct
       }
     }
 
-    // Default password: Student@123 — must be changed on first login (future enforcement)
+    // Default password: Student@123, must be changed on first login (future enforcement)
     const passwordHash = await bcrypt.hash('Student@123', 10);
     const user = await dbCreateUser({
       email: emailToUse,
       name: `${data.firstName} ${data.lastName}`.trim(), // Store display name
       passwordHash,
       role: 'STUDENT',
-      schoolId,  // ALWAYS the authenticated school — never from client
+      schoolId,  // ALWAYS the authenticated school, never from client
     });
 
     const student = await dbCreateStudent({

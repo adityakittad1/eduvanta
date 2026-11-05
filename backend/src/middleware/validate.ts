@@ -15,7 +15,7 @@ export function validateRequest(schema: ZodObject<ZodRawShape>) {
     });
 
     if (!result.success) {
-      next(result.error); // ZodError — handled by errorHandler
+      next(result.error); // ZodError, handled by errorHandler
       return;
     }
 

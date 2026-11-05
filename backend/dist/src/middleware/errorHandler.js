@@ -53,7 +53,7 @@ function errorHandler(err, req, res, _next) {
         });
         return;
     }
-    // Unknown errors — log full details
+    // Unknown errors: log full details
     logger_1.logger.error('Unhandled error', {
         error: err.message,
         stack: err.stack,

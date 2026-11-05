@@ -46,7 +46,7 @@ export async function uploadGalleryItem(req: Request, res: Response, next: NextF
   }
 }
 
-// PATCH /gallery/:id — update isPublic flag (and optionally other fields)
+// PATCH /gallery/:id: update isPublic flag (and optionally other fields)
 export async function updateGalleryItem(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const schoolId = req.tenant!.id;
@@ -54,7 +54,7 @@ export async function updateGalleryItem(req: Request, res: Response, next: NextF
 
     const id = req.params.id as string;
 
-    // Verify ownership — gallery item must belong to this school
+    // Verify ownership: gallery item must belong to this school
     const existing = await prisma.galleryItem.findUnique({ where: { id } });
     if (!existing || existing.schoolId !== schoolId) {
       throw new AppError('Gallery item not found', 404, 'NOT_FOUND');

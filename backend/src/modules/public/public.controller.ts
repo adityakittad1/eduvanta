@@ -1,6 +1,6 @@
 // ============================================================
 // Public Website Controller
-// These endpoints are unauthenticated — public facing.
+// These endpoints are unauthenticated and public-facing.
 // Only safe, explicitly public data is returned.
 // ============================================================
 

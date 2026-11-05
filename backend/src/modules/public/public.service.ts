@@ -1,6 +1,6 @@
 // ============================================================
 // Public Website Service
-// Fetches ONLY publicly-safe data — no auth required.
+// Fetches ONLY publicly-safe data, no auth required.
 // Dual-path: Uses Prisma with fallback to Supabase REST client.
 // ============================================================
 
@@ -10,7 +10,7 @@ import { isPrismaAvailable, markPrismaFailure } from '../../lib/authDb';
 import { AppError } from '../../middleware/errorHandler';
 import { logger } from '../../lib/logger';
 
-// Resolve school by slug or id — returns schoolId or throws
+// Resolve school by slug or id: returns schoolId or throws
 export async function resolvePublicSchool(slug: string) {
   if (isPrismaAvailable()) {
     try {

@@ -136,10 +136,10 @@ Application: http://localhost
 
 Before contributing, read these in order:
 
-1. [AGENTS.md](./AGENTS.md) — Coding rules for AI agents and developers
-2. [PRD.md](./PRD.md) — Product requirements
-3. [ARCHITECTURE.md](./ARCHITECTURE.md) — Technical architecture
-4. [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) — Visual design system
+1. [AGENTS.md](./AGENTS.md): Coding rules for AI agents and developers
+2. [PRD.md](./PRD.md): Product requirements
+3. [ARCHITECTURE.md](./ARCHITECTURE.md): Technical architecture
+4. [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md): Visual design system
 
 ---
 

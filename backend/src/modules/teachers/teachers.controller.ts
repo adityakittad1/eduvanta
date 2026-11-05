@@ -73,7 +73,7 @@ export async function getTeacherById(req: Request, res: Response, next: NextFunc
 
 export async function createTeacher(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
-    // SECURITY: schoolId ALWAYS comes from authenticated user — never trusted from client body
+    // SECURITY: schoolId ALWAYS comes from authenticated user, never trusted from client body
     const schoolId = req.tenant!.id;
     if (!schoolId) throw new AppError('No school context', 400, 'BAD_REQUEST');
 
@@ -107,7 +107,7 @@ export async function createTeacher(req: Request, res: Response, next: NextFunct
       }
     }
 
-    // Default password: Teacher@123 — principal should communicate this to the teacher
+    // Default password: Teacher@123; principal should communicate this to the teacher
     const passwordHash = await bcrypt.hash('Teacher@123', 10);
     
     const user = await dbCreateUser({

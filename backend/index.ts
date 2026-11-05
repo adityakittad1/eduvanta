@@ -21,7 +21,7 @@ async function main() {
     await prisma.$connect();
     logger.info('Database connected successfully');
   } catch (error) {
-    logger.warn('Initial database connection failed — queries will connect on demand', { error });
+    logger.warn('Initial database connection failed; queries will connect on demand', { error });
   }
 
   const server = app.listen(PORT, () => {

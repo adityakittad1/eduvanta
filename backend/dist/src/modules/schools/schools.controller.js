@@ -107,7 +107,7 @@ async function createSchool(req, res, next) {
         catch (provisionErr) {
             logger_1.logger.warn('Failed to auto-provision principal account for school', { error: provisionErr?.message });
         }
-        // Audit log — school onboarding is critical
+        // Audit log: school onboarding is critical
         await (0, dataDb_1.dbCreateAuditLog)({
             userId: req.user.id,
             action: 'SCHOOL_CREATED',

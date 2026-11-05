@@ -1,5 +1,5 @@
 /* ============================================================
-   ZP School ERP — CSS Reset & Base Normalization
+   ZP School ERP: CSS Reset & Base Normalization
    ============================================================ */
 
 *, *::before, *::after {
@@ -54,7 +54,7 @@ table {
   border-spacing: 0;
 }
 
-/* Remove default focus ring — we add custom ones */
+/* Remove default focus ring; we add custom ones */
 :focus {
   outline: none;
 }

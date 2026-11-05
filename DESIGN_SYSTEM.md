@@ -1,4 +1,4 @@
-# DESIGN_SYSTEM.md — Visual Design System
+# DESIGN_SYSTEM.md: Visual Design System
 
 **Version:** 1.0
 
@@ -10,14 +10,14 @@
 
 ## 1. Design Philosophy
 
-ZP School ERP is used by school principals, teachers, and students in Zilla Parishad schools — including rural environments with limited digital literacy. The visual design must be:
+ZP School ERP is used by school principals, teachers, and students in Zilla Parishad schools, including rural environments with limited digital literacy. The visual design must be:
 
-- **Professional** — It must look like real institutional software
-- **Calm and trustworthy** — Education software should not feel aggressive or loud
-- **Highly readable** — Text clarity is critical
-- **Consistent** — Every screen should feel like it belongs to the same product
-- **Simple to use** — Complex architecture hidden behind a simple interface
-- **Mobile-friendly** — Teachers may use smartphones for attendance
+- **Professional**: It must look like real institutional software
+- **Calm and trustworthy**: Education software should not feel aggressive or loud
+- **Highly readable**: Text clarity is critical
+- **Consistent**: Every screen should feel like it belongs to the same product
+- **Simple to use**: Complex architecture hidden behind a simple interface
+- **Mobile-friendly**: Teachers may use smartphones for attendance
 
 ### What to Avoid
 
@@ -36,10 +36,10 @@ ZP School ERP is used by school principals, teachers, and students in Zilla Pari
 
 ### 2.1 Brand Palette
 
-The primary brand color is a deep, trustworthy blue — conveying authority, education, and calm.
+The primary brand color is a deep, trustworthy blue, conveying authority, education, and calm.
 
 ```css
-/* Primary — Deep Institutional Blue */
+/* Primary: Deep Institutional Blue */
 --color-primary-50:  #EFF6FF;
 --color-primary-100: #DBEAFE;
 --color-primary-200: #BFDBFE;
@@ -194,11 +194,11 @@ The primary brand color is a deep, trustworthy blue — conveying authority, edu
 ## 5. Border Radius
 
 ```css
---radius-sm:   0.25rem;  /* 4px — small elements */
---radius-md:   0.375rem; /* 6px — inputs, small cards */
---radius-lg:   0.5rem;   /* 8px — cards, panels */
---radius-xl:   0.75rem;  /* 12px — large cards */
---radius-2xl:  1rem;     /* 16px — modals */
+--radius-sm:   0.25rem;  /* 4px: small elements */
+--radius-md:   0.375rem; /* 6px: inputs, small cards */
+--radius-lg:   0.5rem;   /* 8px: cards, panels */
+--radius-xl:   0.75rem;  /* 12px: large cards */
+--radius-2xl:  1rem;     /* 16px: modals */
 --radius-full: 9999px;   /* Pills, avatars */
 ```
 
@@ -466,7 +466,7 @@ Do NOT animate:
 ## 12. School Branding Areas
 
 The school logo appears in:
-- Sidebar header (within the dark sidebar — use a contained region)
+- Sidebar header (within the dark sidebar, use a contained region)
 - TC PDF header
 - Report PDF header
 - School profile page header

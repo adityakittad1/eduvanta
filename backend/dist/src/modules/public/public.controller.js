@@ -1,7 +1,7 @@
 "use strict";
 // ============================================================
 // Public Website Controller
-// These endpoints are unauthenticated — public facing.
+// These endpoints are unauthenticated and public-facing.
 // Only safe, explicitly public data is returned.
 // ============================================================
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {

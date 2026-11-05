@@ -21,7 +21,7 @@ async function main() {
         logger_1.logger.info('Database connected successfully');
     }
     catch (error) {
-        logger_1.logger.warn('Initial database connection failed — queries will connect on demand', { error });
+        logger_1.logger.warn('Initial database connection failed; queries will connect on demand', { error });
     }
     const server = app.listen(PORT, () => {
         logger_1.logger.info(`ZP School ERP API running on port ${PORT}`, {

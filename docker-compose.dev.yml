@@ -1,6 +1,6 @@
 version: '3.9'
 
-# Development compose — runs ONLY PostgreSQL locally.
+# Development compose: runs ONLY PostgreSQL locally.
 # Run backend and frontend with: npm run dev (in each folder)
 
 services:

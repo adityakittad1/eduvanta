@@ -97,7 +97,7 @@ export function SchoolPublicHome() {
   useEffect(() => {
     if (!data) return;
     const { profile } = data;
-    document.title = `${profile.name} — Official Digital Campus | EduVanta`;
+    document.title = `${profile.name}: Official Digital Campus | EduVanta`;
 
     let metaDesc = document.querySelector('meta[name="description"]');
     if (!metaDesc) {
@@ -566,7 +566,7 @@ export function SchoolPublicHome() {
             <div>
               <p style={{ margin: 0, fontWeight: 500, color: 'white' }}>© {new Date().getFullYear()} {profile.name}. All rights reserved.</p>
               <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: '#64748b' }}>
-                Zilla Parishad Education Department — Government of Maharashtra
+                Zilla Parishad Education Department, Government of Maharashtra
               </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', fontSize: '0.9rem' }}>
