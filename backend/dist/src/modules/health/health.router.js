@@ -83,7 +83,7 @@ exports.healthRouter.get('/', async (_req, res) => {
             hasSupabaseUrl: Boolean(process.env.SUPABASE_URL),
             hasSupabaseKey: Boolean(process.env.SUPABASE_SERVICE_KEY),
         },
-        version: '1.0.0',
+        version: '1.0.1',
         environment: process.env.NODE_ENV ?? 'unknown',
     });
 });
