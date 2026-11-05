@@ -17,8 +17,24 @@ export function SchoolProfilePage() {
       setIsLoading(true);
       const data = await schoolProfileApi.getProfile();
       setProfile(data);
-    } catch (error) {
-      toast.error('Failed to load profile');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to load profile');
+      if (user?.school) {
+        setProfile({
+          id: user.school.id,
+          name: user.school.name,
+          slug: user.school.slug || null,
+          logoUrl: user.school.logoUrl || null,
+          address: '',
+          contactPhone: '',
+          contactEmail: user.email,
+          principalName: user.name || null,
+          description: '',
+          tagline: '',
+          establishedYear: null,
+          isPublicEnabled: true,
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -48,7 +64,23 @@ export function SchoolProfilePage() {
     }
   };
 
-  if (isLoading || !profile) return <div style={{ padding: 'var(--space-6)' }}>Loading...</div>;
+  if (isLoading) {
+    return (
+      <div style={{ padding: 'var(--space-6)', maxWidth: 800, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+        <div className="skeleton" style={{ height: 40, width: 240, borderRadius: 'var(--radius-md)' }} />
+        <div className="skeleton" style={{ height: 400, borderRadius: 'var(--radius-lg)' }} />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div style={{ padding: 'var(--space-12)', textAlign: 'center' }}>
+        <p style={{ color: 'var(--color-neutral-600)', marginBottom: 'var(--space-4)' }}>Unable to load school profile.</p>
+        <Button onClick={fetchProfile} variant="secondary">Retry</Button>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: 'var(--space-6)', maxWidth: 800, margin: '0 auto' }}>

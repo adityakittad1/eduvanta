@@ -48,6 +48,66 @@ export declare function getAuthorizedContext(schoolId: string, user: UserContext
     students: any[];
     teachers: any[];
     warnings: any[];
+} | {
+    school: {
+        name: any;
+        tagline: any;
+        address: any;
+        principalName: any;
+        establishedYear: any;
+        _count: {
+            students: number;
+            teachers: number;
+            classes: number;
+        };
+        classes: {
+            id: any;
+            name: any;
+            division: any;
+            academicYear: any;
+        }[];
+        events: {
+            title: any;
+            eventDate: any;
+            description: any;
+        }[];
+        notices: {
+            title: any;
+            content: any;
+            publishedAt: any;
+        }[];
+        facilities: {
+            name: any;
+            description: any;
+        }[];
+    };
+    students: {
+        id: any;
+        firstName: any;
+        lastName: any;
+        admissionNumber: any;
+        guardianName: any;
+        guardianPhone: any;
+        class: {
+            name: any;
+            division: any;
+        } | null;
+    }[];
+    teachers: {
+        id: any;
+        firstName: any;
+        lastName: any;
+        employeeId: any;
+        qualification: any;
+    }[];
+    warnings: {
+        flagType: any;
+        details: any;
+        student: {
+            firstName: any;
+            lastName: any;
+        } | null;
+    }[];
 } | null>;
 /**
  * Main AI query processor.

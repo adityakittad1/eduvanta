@@ -24,7 +24,7 @@ export function AiAssistantPage() {
       const response = await aiApi.askQuestion(userMessage);
       setMessages(prev => [...prev, { role: 'assistant', content: response }]);
     } catch (error: any) {
-      toast.error('Failed to get response from AI');
+      toast.error(error?.message || 'Failed to get response from AI');
       setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please ensure the AI backend is properly configured.' }]);
     } finally {
       setIsLoading(false);

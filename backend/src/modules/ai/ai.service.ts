@@ -10,6 +10,8 @@
 // ============================================================
 
 import { prisma } from '../../lib/prisma';
+import { supabase } from '../../lib/supabase';
+import { isPrismaAvailable, markPrismaFailure } from '../../lib/authDb';
 import { env } from '../../config/env';
 import { logger } from '../../lib/logger';
 
@@ -25,123 +27,232 @@ interface UserContext {
  * Database credentials or raw SQL execution are NEVER passed to the LLM.
  */
 export async function getAuthorizedContext(schoolId: string, user: UserContext) {
-  const school = await prisma.school.findUnique({
-    where: { id: schoolId },
-    select: {
-      name: true,
-      tagline: true,
-      address: true,
-      principalName: true,
-      establishedYear: true,
-      _count: {
+  // 1. Try Prisma first if healthy
+  if (isPrismaAvailable()) {
+    try {
+      const school = await prisma.school.findUnique({
+        where: { id: schoolId },
         select: {
-          students: { where: { isActive: true } },
-          teachers: { where: { isActive: true } },
-          classes: { where: { isActive: true } },
+          name: true,
+          tagline: true,
+          address: true,
+          principalName: true,
+          establishedYear: true,
+          _count: {
+            select: {
+              students: { where: { isActive: true } },
+              teachers: { where: { isActive: true } },
+              classes: { where: { isActive: true } },
+            },
+          },
+          classes: {
+            where: { isActive: true },
+            select: { id: true, name: true, division: true, academicYear: true },
+            take: 10,
+          },
+          events: {
+            where: { isPublic: true },
+            select: { title: true, eventDate: true, description: true },
+            orderBy: { eventDate: 'asc' },
+            take: 5,
+          },
+          notices: {
+            where: { status: 'PUBLISHED' },
+            select: { title: true, content: true, publishedAt: true },
+            orderBy: { publishedAt: 'desc' },
+            take: 5,
+          },
+          facilities: {
+            select: { name: true, description: true },
+            take: 6,
+          },
         },
-      },
-      classes: {
-        where: { isActive: true },
-        select: { id: true, name: true, division: true, academicYear: true },
-        take: 10,
-      },
-      events: {
-        where: { isPublic: true },
-        select: { title: true, eventDate: true, description: true },
-        orderBy: { eventDate: 'asc' },
-        take: 5,
-      },
-      notices: {
-        where: { status: 'PUBLISHED' },
-        select: { title: true, content: true, publishedAt: true },
-        orderBy: { publishedAt: 'desc' },
-        take: 5,
-      },
-      facilities: {
-        select: { name: true, description: true },
-        take: 6,
-      },
-    },
-  });
+      });
 
-  if (!school) return null;
+      if (school) {
+        let studentsSummary: any[] = [];
+        let teachersSummary: any[] = [];
+        let warningsSummary: any[] = [];
 
-  // Role-based data inclusion
-  let studentsSummary: any[] = [];
-  let teachersSummary: any[] = [];
-  let warningsSummary: any[] = [];
+        if (user.role === 'PRINCIPAL' || user.role === 'SUPER_ADMIN') {
+          studentsSummary = await prisma.student.findMany({
+            where: { schoolId, isActive: true },
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              admissionNumber: true,
+              class: { select: { name: true, division: true } },
+              guardianName: true,
+              guardianPhone: true,
+            },
+            take: 20,
+          });
 
-  if (user.role === 'PRINCIPAL' || user.role === 'SUPER_ADMIN') {
-    // School-wide summary
-    studentsSummary = await prisma.student.findMany({
-      where: { schoolId, isActive: true },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        admissionNumber: true,
-        class: { select: { name: true, division: true } },
-        guardianName: true,
-        guardianPhone: true,
-      },
-      take: 20,
-    });
+          teachersSummary = await prisma.teacher.findMany({
+            where: { schoolId, isActive: true },
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              employeeId: true,
+              qualification: true,
+            },
+            take: 10,
+          });
 
-    teachersSummary = await prisma.teacher.findMany({
-      where: { schoolId, isActive: true },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        employeeId: true,
-        qualification: true,
-      },
-      take: 10,
-    });
+          warningsSummary = await prisma.earlyWarningFlag.findMany({
+            where: { schoolId, isResolved: false },
+            select: {
+              flagType: true,
+              details: true,
+              student: { select: { firstName: true, lastName: true } },
+            },
+            take: 5,
+          });
+        } else if (user.role === 'TEACHER') {
+          studentsSummary = await prisma.student.findMany({
+            where: { schoolId, isActive: true },
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              admissionNumber: true,
+              class: { select: { name: true, division: true } },
+            },
+            take: 20,
+          });
+        } else if (user.role === 'STUDENT') {
+          studentsSummary = await prisma.student.findMany({
+            where: { schoolId, userId: user.userId },
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              admissionNumber: true,
+              class: { select: { name: true, division: true } },
+            },
+            take: 1,
+          });
+        }
 
-    warningsSummary = await prisma.earlyWarningFlag.findMany({
-      where: { schoolId, isResolved: false },
-      select: {
-        flagType: true,
-        details: true,
-        student: { select: { firstName: true, lastName: true } },
-      },
-      take: 5,
-    });
-  } else if (user.role === 'TEACHER') {
-    // Teacher's assigned students & classes
-    studentsSummary = await prisma.student.findMany({
-      where: { schoolId, isActive: true },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        admissionNumber: true,
-        class: { select: { name: true, division: true } },
-      },
-      take: 20,
-    });
-  } else if (user.role === 'STUDENT') {
-    // Student can only see their own record
-    studentsSummary = await prisma.student.findMany({
-      where: { schoolId, userId: user.userId },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        admissionNumber: true,
-        class: { select: { name: true, division: true } },
-      },
-      take: 1,
-    });
+        return {
+          school,
+          students: studentsSummary,
+          teachers: teachersSummary,
+          warnings: warningsSummary,
+        };
+      }
+    } catch (err: any) {
+      markPrismaFailure();
+      logger.warn('Prisma getAuthorizedContext failed, using Supabase client', { error: err?.message });
+    }
   }
 
-  return {
-    school,
-    students: studentsSummary,
-    teachers: teachersSummary,
-    warnings: warningsSummary,
-  };
+  // 2. Serverless Supabase Fallback
+  if (supabase) {
+    try {
+      const { data: s } = await supabase
+        .from('schools')
+        .select('*')
+        .eq('id', schoolId)
+        .maybeSingle();
+
+      if (!s) return null;
+
+      const [
+        { count: studentCount },
+        { count: teacherCount },
+        { count: classCount },
+        { data: clsList },
+        { data: evtList },
+        { data: notList },
+        { data: facList },
+        { data: stdList },
+        { data: tchList },
+        { data: wrnList },
+      ] = await Promise.all([
+        supabase.from('students').select('*', { count: 'exact', head: true }).eq('school_id', schoolId).eq('is_active', true),
+        supabase.from('teachers').select('*', { count: 'exact', head: true }).eq('school_id', schoolId).eq('is_active', true),
+        supabase.from('classes').select('*', { count: 'exact', head: true }).eq('school_id', schoolId).eq('is_active', true),
+        supabase.from('classes').select('id, name, division, academic_year').eq('school_id', schoolId).eq('is_active', true).limit(10),
+        supabase.from('school_events').select('title, event_date, description').eq('school_id', schoolId).eq('is_public', true).order('event_date', { ascending: true }).limit(5),
+        supabase.from('notices').select('title, content, published_at').eq('school_id', schoolId).eq('status', 'PUBLISHED').order('published_at', { ascending: false }).limit(5),
+        supabase.from('school_facilities').select('name, description').eq('school_id', schoolId).limit(6),
+        supabase.from('students').select('id, first_name, last_name, admission_number, guardian_name, guardian_phone, classes(name, division)').eq('school_id', schoolId).eq('is_active', true).limit(20),
+        supabase.from('teachers').select('id, first_name, last_name, employee_id, qualification').eq('school_id', schoolId).eq('is_active', true).limit(10),
+        supabase.from('early_warning_flags').select('flag_type, details, students(first_name, last_name)').eq('school_id', schoolId).eq('is_resolved', false).limit(5),
+      ]);
+
+      const school = {
+        name: s.name,
+        tagline: s.tagline,
+        address: s.address,
+        principalName: s.principal_name,
+        establishedYear: s.established_year,
+        _count: {
+          students: studentCount || 0,
+          teachers: teacherCount || 0,
+          classes: classCount || 0,
+        },
+        classes: (clsList || []).map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          division: c.division,
+          academicYear: c.academic_year,
+        })),
+        events: (evtList || []).map((e: any) => ({
+          title: e.title,
+          eventDate: e.event_date,
+          description: e.description,
+        })),
+        notices: (notList || []).map((n: any) => ({
+          title: n.title,
+          content: n.content,
+          publishedAt: n.published_at,
+        })),
+        facilities: (facList || []).map((f: any) => ({
+          name: f.name,
+          description: f.description,
+        })),
+      };
+
+      const students = (stdList || []).map((st: any) => ({
+        id: st.id,
+        firstName: st.first_name,
+        lastName: st.last_name,
+        admissionNumber: st.admission_number,
+        guardianName: st.guardian_name,
+        guardianPhone: st.guardian_phone,
+        class: st.classes ? { name: st.classes.name, division: st.classes.division } : null,
+      }));
+
+      const teachers = (tchList || []).map((tc: any) => ({
+        id: tc.id,
+        firstName: tc.first_name,
+        lastName: tc.last_name,
+        employeeId: tc.employee_id,
+        qualification: tc.qualification,
+      }));
+
+      const warnings = (wrnList || []).map((w: any) => ({
+        flagType: w.flag_type,
+        details: w.details,
+        student: w.students ? { firstName: w.students.first_name, lastName: w.students.last_name } : null,
+      }));
+
+      return {
+        school,
+        students,
+        teachers,
+        warnings,
+      };
+    } catch (err: any) {
+      logger.warn('Supabase fallback for getAuthorizedContext failed', { error: err?.message });
+    }
+  }
+
+  return null;
 }
 
 /**
