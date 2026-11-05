@@ -80,7 +80,16 @@ api.interceptors.response.use(
       }
     }
 
-    const customError = new Error(error.response?.data?.message || error.message);
+    const errorData = error.response?.data;
+    let message = errorData?.message || error.message;
+    if (errorData?.errors && typeof errorData.errors === 'object') {
+      const fieldMsgs = Object.values(errorData.errors).flat().filter(Boolean);
+      if (fieldMsgs.length > 0) {
+        message = `${message}: ${fieldMsgs.join('; ')}`;
+      }
+    }
+    const customError = new Error(message);
+    (customError as any).errors = errorData?.errors;
     return Promise.reject(customError);
   }
 );

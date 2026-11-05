@@ -22,32 +22,71 @@ async function handleUpload(req, res, next) {
         if (supabase_1.supabase) {
             const fileBuffer = fs_1.default.readFileSync(file.path);
             const filePath = `${schoolId}/${file.filename}`;
-            const { error } = await supabase_1.supabase.storage
-                .from('eduvanta-assets') // Ensure this bucket exists in Supabase!
+            let uploadRes = await supabase_1.supabase.storage
+                .from('eduvanta-assets')
                 .upload(filePath, fileBuffer, {
                 contentType: file.mimetype,
-                upsert: false,
+                upsert: true,
             });
-            if (error) {
-                throw new errorHandler_1.AppError('Failed to upload to Supabase: ' + error.message, 500, 'INTERNAL_ERROR');
-            }
-            // Cleanup local temp file
-            fs_1.default.unlinkSync(file.path);
-            const { data: publicUrlData } = supabase_1.supabase.storage
-                .from('eduvanta-assets')
-                .getPublicUrl(filePath);
-            res.status(201).json({
-                success: true,
-                data: {
-                    url: publicUrlData.publicUrl,
-                    filename: file.filename,
-                    originalName: file.originalname,
-                    size: file.size,
-                    mimetype: file.mimetype,
-                    provider: 'supabase'
+            if (uploadRes.error && (uploadRes.error.message?.includes('not found') || uploadRes.error.statusCode === '404')) {
+                // Try creating the bucket automatically
+                try {
+                    await supabase_1.supabase.storage.createBucket('eduvanta-assets', { public: true });
+                    uploadRes = await supabase_1.supabase.storage
+                        .from('eduvanta-assets')
+                        .upload(filePath, fileBuffer, {
+                        contentType: file.mimetype,
+                        upsert: true,
+                    });
                 }
-            });
-            return;
+                catch {
+                    // ignore create error
+                }
+            }
+            if (!uploadRes.error) {
+                // Cleanup local temp file
+                try {
+                    fs_1.default.unlinkSync(file.path);
+                }
+                catch { }
+                const { data: publicUrlData } = supabase_1.supabase.storage
+                    .from('eduvanta-assets')
+                    .getPublicUrl(filePath);
+                res.status(201).json({
+                    success: true,
+                    data: {
+                        url: publicUrlData.publicUrl,
+                        filename: file.filename,
+                        originalName: file.originalname,
+                        size: file.size,
+                        mimetype: file.mimetype,
+                        provider: 'supabase'
+                    }
+                });
+                return;
+            }
+            // If Supabase storage is unavailable or bucket not permitted, provide safe data URL fallback for images
+            if (file.mimetype.startsWith('image/') && fileBuffer.length <= 10 * 1024 * 1024) {
+                try {
+                    fs_1.default.unlinkSync(file.path);
+                }
+                catch { }
+                const base64 = fileBuffer.toString('base64');
+                const dataUrl = `data:${file.mimetype};base64,${base64}`;
+                res.status(201).json({
+                    success: true,
+                    data: {
+                        url: dataUrl,
+                        filename: file.filename,
+                        originalName: file.originalname,
+                        size: file.size,
+                        mimetype: file.mimetype,
+                        provider: 'data-url'
+                    }
+                });
+                return;
+            }
+            throw new errorHandler_1.AppError('Failed to upload file: ' + uploadRes.error.message, 500, 'INTERNAL_ERROR');
         }
         // Fallback: Local Storage (For Dev only)
         // Create the final relative URL for local access

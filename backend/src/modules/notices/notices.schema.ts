@@ -3,10 +3,12 @@ import { NoticeTarget } from '@prisma/client';
 
 export const createNoticeSchema = z.object({
   body: z.object({
-    title: z.string().min(3, 'Title is required'),
-    content: z.string().min(5, 'Content is required'),
+    title: z.string().trim().min(1, 'Notice title is required'),
+    content: z.string().trim().min(1, 'Notice content is required'),
     targetAudience: z.nativeEnum(NoticeTarget),
-    targetClassId: z.string().optional()
+    targetClassId: z.string().optional().nullable(),
+    visibility: z.enum(['INTERNAL', 'PUBLIC']).optional(),
+    status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).optional(),
   }).refine(data => {
     if (data.targetAudience === NoticeTarget.CLASS && !data.targetClassId) {
       return false;

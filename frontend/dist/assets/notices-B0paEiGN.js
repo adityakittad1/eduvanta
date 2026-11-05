@@ -1,0 +1,1 @@
+import{b as a}from"./index-BVqtkKgV.js";const s={getNotices:async()=>{const{data:t}=await a.get("/notices");return t.data},createNotice:async t=>{const{data:e}=await a.post("/notices",t);return e.data}};export{s as n};

@@ -1,1 +1,0 @@
-import{b as s}from"./index-DatkAb51.js";const n={getAll:async a=>{const{data:t}=await s.get("/schools",{params:a});return t},getById:async a=>{const{data:t}=await s.get(`/schools/${a}`);return t.data},create:async a=>{const{data:t}=await s.post("/schools",a);return t.data},update:async(a,t)=>{const{data:o}=await s.put(`/schools/${a}`,t);return o.data}};export{n as s};
