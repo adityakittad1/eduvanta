@@ -5,6 +5,9 @@
     "backend",
     "frontend"
   ],
+  "scripts": {
+    "build": "npm run build --prefix backend && npm run build --prefix frontend"
+  },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.78.0"

@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, GraduationCap, BookOpen, ClipboardList,
   BarChart2, Bell, FileText, School, Image, ChevronLeft,
   ChevronRight, Bot, AlertTriangle, Library, BookMarked, Settings,
-  Menu, X, Globe,
+  X, Globe,
 } from 'lucide-react';
 import { useAuth } from '@/store/AuthContext';
 import type { Role } from '@/store/AuthContext';
@@ -43,29 +43,32 @@ const superAdminNavItems: NavItem[] = [
   { label: 'Users',       to: '/erp/super-admin/users',     icon: <Users size={18} />,           roles: ['SUPER_ADMIN'] },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  mobileOpen?: boolean;
+  onCloseMobile?: () => void;
+}
+
+export function Sidebar({ mobileOpen = false, onCloseMobile }: SidebarProps) {
   const { user } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   const items = user?.role === 'SUPER_ADMIN' ? superAdminNavItems : navItems;
   const visibleItems = items.filter((item) => user && item.roles.includes(user.role));
 
+  const handleNavClick = () => {
+    if (onCloseMobile) onCloseMobile();
+  };
+
   return (
     <>
-      {/* Mobile overlay */}
+      {/* Mobile Backdrop Overlay */}
       {mobileOpen && (
-        <div className="sidebar-mobile-overlay" onClick={() => setMobileOpen(false)} />
+        <div 
+          className="sidebar-mobile-overlay" 
+          onClick={onCloseMobile} 
+          aria-hidden="true" 
+        />
       )}
-
-      {/* Mobile toggle */}
-      <button
-        className="sidebar-mobile-toggle"
-        onClick={() => setMobileOpen(!mobileOpen)}
-        aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
-      >
-        {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-      </button>
 
       <aside className={`sidebar ${collapsed ? 'sidebar-collapsed' : ''} ${mobileOpen ? 'sidebar-mobile-open' : ''}`}
         aria-label="Main navigation"
@@ -89,13 +92,25 @@ export function Sidebar() {
               </span>
             </div>
           )}
+          {/* Desktop collapse button */}
           <button
-            className="sidebar-collapse-btn"
+            className="sidebar-collapse-btn desktop-only"
             onClick={() => setCollapsed(!collapsed)}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
           </button>
+
+          {/* Mobile drawer close button */}
+          {mobileOpen && (
+            <button
+              className="sidebar-mobile-close-btn mobile-only"
+              onClick={onCloseMobile}
+              aria-label="Close navigation menu"
+            >
+              <X size={18} />
+            </button>
+          )}
         </div>
 
         {/* Navigation */}
@@ -106,7 +121,7 @@ export function Sidebar() {
               to={item.to}
               className={({ isActive }) => `sidebar-item ${isActive ? 'sidebar-item-active' : ''}`}
               title={collapsed ? item.label : undefined}
-              onClick={() => setMobileOpen(false)}
+              onClick={handleNavClick}
             >
               <span className="sidebar-item-icon" aria-hidden="true">{item.icon}</span>
               {!collapsed && <span className="sidebar-item-label">{item.label}</span>}

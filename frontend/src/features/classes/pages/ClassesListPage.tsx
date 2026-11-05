@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Users, BookOpen, ChevronRight } from 'lucide-react';
-import { Button, Modal, Input, useToast } from '@/components/ui';
+import { Button, Modal, Input, EmptyState, useToast } from '@/components/ui';
 import { classesApi, Class } from '../api/classes';
 
 export function ClassesListPage() {
@@ -16,7 +16,7 @@ export function ClassesListPage() {
       setIsLoading(true);
       const data = await classesApi.getClasses();
       setClasses(data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load classes');
     } finally {
       setIsLoading(false);
@@ -53,55 +53,60 @@ export function ClassesListPage() {
     }
 
     try {
-      // Loop over and create (no bulk API yet, so we do Promise.all)
       await Promise.all(classesToCreate.map(data => classesApi.createClass(data)));
       toast.success(`${classesToCreate.length} class(es) created successfully`);
       setIsModalOpen(false);
       fetchClasses();
     } catch (error: any) {
       toast.error(error.message || 'Failed to create some classes');
-      fetchClasses(); // Refresh anyway to show what succeeded
+      fetchClasses();
     }
   };
 
   return (
-    <div style={{ padding: 'var(--space-6)', maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 'var(--font-bold)', color: 'var(--color-neutral-900)' }}>Academic Classes</h1>
-          <p style={{ color: 'var(--color-neutral-500)', marginTop: 'var(--space-1)' }}>Manage classes, subjects, and student enrollments</p>
+          <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 700, color: 'var(--color-neutral-900)' }}>Academic Classes & Divisions</h1>
+          <p style={{ color: 'var(--color-neutral-500)', fontSize: 'var(--text-sm)', marginTop: 2 }}>
+            Manage grade levels, subject curriculum, and student enrollment divisions ({classes.length} active classes)
+          </p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)}>
+        <Button variant="primary" onClick={() => setIsModalOpen(true)}>
           <Plus size={16} /> New Class
         </Button>
       </div>
 
       {isLoading ? (
-        <div style={{ textAlign: 'center', padding: 'var(--space-8)', color: 'var(--color-neutral-500)' }}>Loading classes...</div>
-      ) : classes.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 'var(--space-12)', background: 'var(--color-neutral-0)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-neutral-200)' }}>
-          <BookOpen size={48} color="var(--color-neutral-300)" style={{ margin: '0 auto var(--space-4)' }} />
-          <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 'var(--font-medium)' }}>No classes found</h3>
-          <p style={{ color: 'var(--color-neutral-500)', marginBottom: 'var(--space-4)' }}>Create your first class to start building the academic structure.</p>
-          <Button onClick={() => setIsModalOpen(true)}>Create Class</Button>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="skeleton" style={{ height: 130, borderRadius: 'var(--radius-lg)' }} />
+          ))}
         </div>
+      ) : classes.length === 0 ? (
+        <EmptyState
+          icon={<BookOpen size={48} />}
+          title="No classes found"
+          description="Create your first class to build the school's academic structure and enroll students."
+          action={{ label: "Create Class", onClick: () => setIsModalOpen(true) }}
+        />
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 'var(--space-4)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
           {classes.map(cls => (
             <div 
               key={cls.id} 
               onClick={() => navigate(`/erp/classes/${cls.id}`)}
               style={{ 
                 background: 'var(--color-neutral-0)', 
-                borderRadius: 'var(--radius-lg)', 
+                borderRadius: 'var(--radius-xl)', 
                 border: '1px solid var(--color-neutral-200)', 
                 padding: 'var(--space-5)',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
+                transition: 'transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 'var(--space-4)',
-                boxShadow: 'var(--shadow-sm)'
+                boxShadow: 'var(--shadow-xs)'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = 'var(--color-primary-300)';
@@ -111,31 +116,31 @@ export function ClassesListPage() {
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = 'var(--color-neutral-200)';
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                e.currentTarget.style.boxShadow = 'var(--shadow-xs)';
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 'var(--font-bold)', color: 'var(--color-neutral-900)' }}>
-                    {cls.name} {cls.division && <span style={{ color: 'var(--color-neutral-500)' }}>- {cls.division}</span>}
+                  <h3 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--color-neutral-900)' }}>
+                    {cls.name} {cls.division && <span style={{ color: 'var(--color-neutral-500)', fontWeight: 500 }}>({cls.division})</span>}
                   </h3>
-                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-neutral-500)', marginTop: 4 }}>
-                    {cls.academicYear}
+                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-neutral-400)', marginTop: 2 }}>
+                    AY {cls.academicYear}
                   </div>
                 </div>
-                <div style={{ color: 'var(--color-primary-500)', background: 'var(--color-primary-50)', padding: '6px', borderRadius: '50%' }}>
-                  <ChevronRight size={18} />
+                <div style={{ color: 'var(--color-primary-600)', background: 'var(--color-primary-50)', padding: 6, borderRadius: 'var(--radius-full)' }}>
+                  <ChevronRight size={16} />
                 </div>
               </div>
               
-              <div style={{ display: 'flex', gap: 'var(--space-4)', borderTop: '1px solid var(--color-neutral-100)', paddingTop: 'var(--space-4)' }}>
+              <div style={{ display: 'flex', gap: 'var(--space-4)', borderTop: '1px solid var(--color-neutral-100)', paddingTop: 'var(--space-3)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-neutral-600)' }}>
-                  <Users size={16} />
-                  <span style={{ fontSize: 'var(--text-sm)' }}>{cls._count?.students || 0} Students</span>
+                  <Users size={15} />
+                  <span style={{ fontSize: 'var(--text-xs)', fontWeight: 500 }}>{cls._count?.students || 0} Students</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', color: 'var(--color-neutral-600)' }}>
-                  <BookOpen size={16} />
-                  <span style={{ fontSize: 'var(--text-sm)' }}>{cls._count?.subjects || 0} Subjects</span>
+                  <BookOpen size={15} />
+                  <span style={{ fontSize: 'var(--text-xs)', fontWeight: 500 }}>{cls._count?.subjects || 0} Subjects</span>
                 </div>
               </div>
             </div>
@@ -146,9 +151,9 @@ export function ClassesListPage() {
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create Classes">
         <form onSubmit={handleCreateClass} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
           <div style={{ marginBottom: 'var(--space-2)' }}>
-            <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)', color: 'var(--color-neutral-900)', marginBottom: 'var(--space-2)' }}>Select Default Classes</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-2)', maxHeight: '200px', overflowY: 'auto', padding: 'var(--space-2)', background: 'var(--color-neutral-50)', border: '1px solid var(--color-neutral-200)', borderRadius: 'var(--radius-md)' }}>
-              {['Nursery', 'LKG', 'UKG', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10'].map(cls => (
+            <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-neutral-900)', marginBottom: 'var(--space-2)' }}>Select Standard Classes</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 'var(--space-2)', maxHeight: '200px', overflowY: 'auto', padding: 'var(--space-3)', background: 'var(--color-neutral-50)', border: '1px solid var(--color-neutral-200)', borderRadius: 'var(--radius-md)' }}>
+              {['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10'].map(cls => (
                 <label key={cls} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', fontSize: 'var(--text-sm)', cursor: 'pointer' }}>
                   <input type="checkbox" name="defaultClasses" value={cls} />
                   {cls}
@@ -158,12 +163,14 @@ export function ClassesListPage() {
           </div>
           
           <div style={{ borderTop: '1px solid var(--color-neutral-200)', paddingTop: 'var(--space-4)' }}>
-            <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)', color: 'var(--color-neutral-900)', marginBottom: 'var(--space-2)' }}>Or Add Custom Class</h4>
-            <Input label="Custom Class Name" name="customName" placeholder="e.g., Grade 11" />
-            <Input label="Division / Section" name="customDivision" placeholder="e.g., A, Science (Optional)" />
+            <h4 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-neutral-900)', marginBottom: 'var(--space-2)' }}>Or Add Custom Class / Division</h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)' }}>
+              <Input label="Custom Class Name" name="customName" placeholder="e.g. Class 11" />
+              <Input label="Division / Section" name="customDivision" placeholder="e.g. A or Science" />
+            </div>
           </div>
           
-          <Input label="Academic Year" name="academicYear" defaultValue={new Date().getFullYear() + '-' + (new Date().getFullYear() + 1)} required />
+          <Input label="Academic Year" name="academicYear" defaultValue="2026-2027" required />
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
             <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
             <Button type="submit" variant="primary">Create Classes</Button>
@@ -173,3 +180,6 @@ export function ClassesListPage() {
     </div>
   );
 }
+
+export default ClassesListPage;
+

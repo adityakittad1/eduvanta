@@ -1,11 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User, Lock, Building2 } from 'lucide-react';
+import { LogOut, User, Lock, Building2, Menu, X } from 'lucide-react';
 import { useAuth } from '@/store/AuthContext';
 import { ChangePasswordModal } from '@/features/auth/components/ChangePasswordModal';
 import './Header.css';
 
-export function Header() {
+interface HeaderProps {
+  onToggleMobileMenu?: () => void;
+  isMobileMenuOpen?: boolean;
+}
+
+export function Header({ onToggleMobileMenu, isMobileMenuOpen = false }: HeaderProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -31,6 +36,17 @@ export function Header() {
     <>
       <header className="header">
         <div className="header-left">
+          {onToggleMobileMenu && (
+            <button
+              type="button"
+              className="header-mobile-toggle"
+              onClick={onToggleMobileMenu}
+              aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={isMobileMenuOpen}
+            >
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          )}
           <div className="header-school-info">
             <Building2 className="header-school-icon" size={18} />
             <span className="header-school-name">{schoolName}</span>

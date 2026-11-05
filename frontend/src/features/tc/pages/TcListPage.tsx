@@ -47,10 +47,14 @@ export function TcListPage() {
   }, []);
 
   useEffect(() => {
-    if (isModalOpen && !isStudent && students.length === 0) {
-      studentsApi.getStudents(1, 1000).then(res => setStudents(res.data)).catch(() => {});
-    }
-  }, [isModalOpen, isStudent]);
+    if (!isModalOpen || isStudent) return;
+    const timer = setTimeout(() => {
+      studentsApi.getStudents(1, 50, studentSearch.trim() || undefined)
+        .then(res => setStudents(res.data))
+        .catch(() => {});
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [isModalOpen, isStudent, studentSearch]);
 
   const handleRequestTc = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -204,6 +208,12 @@ export function TcListPage() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
         {activeTab === 'TEMPLATES' ? (
           <TcTemplateManager />
+        ) : isLoading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="skeleton" style={{ height: 140, borderRadius: 'var(--radius-xl)' }} />
+            ))}
+          </div>
         ) : (
           (() => {
             const filteredTcs = tcs.filter(tc => 

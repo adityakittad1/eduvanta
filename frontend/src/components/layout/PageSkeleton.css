@@ -1,0 +1,105 @@
+/* ── Page Skeleton (Linear/Vercel SaaS Quality) ────────── */
+.page-skeleton-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  animation: fadeIn 0.2s ease-out;
+  position: relative;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.page-skeleton-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: linear-gradient(90deg, #3B82F6, #2563EB, #60A5FA);
+  z-index: 9999;
+  animation: pulseBar 1.2s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.4);
+}
+
+@keyframes pulseBar {
+  0% { transform: scaleX(0.15); transform-origin: left; }
+  50% { transform: scaleX(0.75); transform-origin: left; }
+  100% { transform: scaleX(1); transform-origin: right; opacity: 0.8; }
+}
+
+.page-skeleton-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: var(--space-2);
+}
+
+.page-skeleton-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: 50%;
+  max-width: 320px;
+}
+
+.page-skeleton-title {
+  height: 28px;
+  width: 70%;
+  border-radius: var(--radius-md);
+}
+
+.page-skeleton-subtitle {
+  height: 14px;
+  width: 95%;
+  border-radius: var(--radius-sm);
+}
+
+.page-skeleton-btn {
+  width: 110px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.page-skeleton-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
+
+.page-skeleton-card {
+  height: 104px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-neutral-200);
+}
+
+.page-skeleton-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.page-skeleton-block {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-neutral-200);
+}
+
+@media (max-width: 640px) {
+  .page-skeleton-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .page-skeleton-header-text {
+    width: 100%;
+  }
+  .page-skeleton-btn {
+    display: none;
+  }
+}
+

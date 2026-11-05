@@ -92,7 +92,11 @@ export function AssessmentsListPage() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 'var(--space-4)' }}>
-        {assessments.length === 0 ? (
+        {isLoading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="skeleton" style={{ height: 160, borderRadius: 'var(--radius-xl)' }} />
+          ))
+        ) : assessments.length === 0 ? (
           <div style={{ gridColumn: '1 / -1', padding: 'var(--space-12)', textAlign: 'center', background: 'var(--color-neutral-0)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-neutral-200)' }}>
             <BookOpen size={32} style={{ margin: '0 auto var(--space-4)', color: 'var(--color-neutral-300)' }} />
             <h3 style={{ fontWeight: 'var(--font-medium)', color: 'var(--color-neutral-900)' }}>No Assessments Found</h3>

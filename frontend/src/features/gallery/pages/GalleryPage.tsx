@@ -63,8 +63,6 @@ export function GalleryPage() {
     }
   };
 
-  if (isLoading) return <div style={{ padding: 'var(--space-6)' }}>Loading...</div>;
-
   return (
     <div style={{ padding: 'var(--space-6)', maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -84,13 +82,19 @@ export function GalleryPage() {
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
-        {items.length === 0 ? (
-          <div style={{ gridColumn: '1 / -1', padding: 'var(--space-12)', textAlign: 'center', background: 'var(--color-neutral-0)', borderRadius: 'var(--radius-lg)', border: '1px dashed var(--color-neutral-300)' }}>
-            <p style={{ color: 'var(--color-neutral-500)' }}>No photos uploaded yet.</p>
-          </div>
-        ) : (
-          items.map(item => (
+      {isLoading ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="skeleton" style={{ height: 280, borderRadius: 'var(--radius-xl)' }} />
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <div style={{ padding: 'var(--space-12)', textAlign: 'center', background: 'var(--color-neutral-0)', borderRadius: 'var(--radius-xl)', border: '1px dashed var(--color-neutral-300)' }}>
+          <p style={{ color: 'var(--color-neutral-500)', fontSize: 'var(--text-sm)' }}>No photographs uploaded to the school gallery yet.</p>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
+          {items.map(item => (
             <div key={item.id} style={{ background: 'var(--color-neutral-0)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-neutral-200)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               <div style={{ height: 200, background: 'var(--color-neutral-100)', position: 'relative' }}>
                 <img
@@ -142,9 +146,9 @@ export function GalleryPage() {
                 )}
               </div>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Upload to Gallery">
         <form onSubmit={handleUpload} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>

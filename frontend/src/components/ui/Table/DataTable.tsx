@@ -1,4 +1,5 @@
 import React from 'react';
+import { TableSkeleton } from '../States/States';
 import './Table.css';
 
 export interface Column<T> {
@@ -15,6 +16,7 @@ interface DataTableProps<T> {
   keyExtractor: (item: T) => string;
   emptyMessage?: string;
   onRowClick?: (item: T) => void;
+  isLoading?: boolean;
 }
 
 export function DataTable<T>({
@@ -23,7 +25,33 @@ export function DataTable<T>({
   keyExtractor,
   emptyMessage = 'No data available.',
   onRowClick,
+  isLoading = false,
 }: DataTableProps<T>) {
+  if (isLoading) {
+    return (
+      <div className="table-container">
+        <table className="table">
+          <thead>
+            <tr>
+              {columns.map((col, index) => (
+                <th
+                  key={index}
+                  className={`table-th text-${col.align || 'left'}`}
+                  style={{ width: col.width }}
+                >
+                  {col.header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+        </table>
+        <div style={{ padding: 'var(--space-2)' }}>
+          <TableSkeleton rows={5} cols={columns.length} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="table-container">
       <table className="table">
@@ -67,3 +95,5 @@ export function DataTable<T>({
     </div>
   );
 }
+
+export default DataTable;

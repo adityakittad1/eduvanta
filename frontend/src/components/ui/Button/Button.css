@@ -10,7 +10,8 @@
   transition: background-color var(--transition-fast),
               border-color var(--transition-fast),
               color var(--transition-fast),
-              box-shadow var(--transition-fast);
+              box-shadow var(--transition-fast),
+              transform var(--transition-fast);
   cursor: pointer;
   border: 1px solid transparent;
   white-space: nowrap;
@@ -18,35 +19,33 @@
   text-decoration: none;
 }
 
-.btn:disabled,
-.btn-loading {
-  opacity: 0.6;
-  cursor: not-allowed;
-  pointer-events: none;
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
-.btn-full { width: 100%; }
-
-/* ── Sizes ───────────────────────────────────────────────── */
-.btn-sm  { padding: 6px 12px;  font-size: var(--text-sm);  height: 32px; }
-.btn-md  { padding: 8px 16px;  font-size: var(--text-sm);  height: 38px; }
-.btn-lg  { padding: 10px 20px; font-size: var(--text-base); height: 44px; }
-
-/* ── Variants ────────────────────────────────────────────── */
 .btn-primary {
   background: var(--color-primary-600);
   color: var(--color-neutral-0);
   border-color: var(--color-primary-600);
+  box-shadow: 0 1px 2px 0 rgba(37, 99, 235, 0.2);
 }
-.btn-primary:hover:not(:disabled) { background: var(--color-primary-700); border-color: var(--color-primary-700); }
-.btn-primary:active:not(:disabled) { background: var(--color-primary-800); border-color: var(--color-primary-800); }
+.btn-primary:hover:not(:disabled) { 
+  background: var(--color-primary-700); 
+  border-color: var(--color-primary-700); 
+  box-shadow: 0 2px 4px 0 rgba(37, 99, 235, 0.25);
+}
 
 .btn-secondary {
   background: var(--color-neutral-0);
   color: var(--color-neutral-700);
   border-color: var(--color-neutral-200);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
 }
-.btn-secondary:hover:not(:disabled) { background: var(--color-neutral-50); border-color: var(--color-neutral-300); }
+.btn-secondary:hover:not(:disabled) { 
+  background: var(--color-neutral-50); 
+  border-color: var(--color-neutral-300); 
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
 .btn-secondary:active:not(:disabled) { background: var(--color-neutral-100); }
 
 .btn-ghost {

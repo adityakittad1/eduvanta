@@ -90,6 +90,24 @@
   color: var(--color-primary-700);
 }
 
+.stat-card {
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.stat-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-neutral-300);
+  box-shadow: var(--shadow-md);
+}
+
+.dashboard-card {
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.dashboard-card:hover {
+  border-color: var(--color-neutral-300);
+}
+
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .dashboard-stats { grid-template-columns: repeat(2, 1fr); }
@@ -98,4 +116,22 @@
 
 @media (max-width: 640px) {
   .dashboard-stats { grid-template-columns: 1fr; }
+  .dashboard-quick-actions {
+    grid-template-columns: 1fr;
+  }
+  .quick-action-btn {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-card,
+  .dashboard-card,
+  .quick-action-btn {
+    transition: none !important;
+    transform: none !important;
+  }
 }

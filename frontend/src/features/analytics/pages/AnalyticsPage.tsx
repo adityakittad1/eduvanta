@@ -8,6 +8,8 @@ import { Button, Badge, useToast } from '@/components/ui';
 import { reportsApi, DashboardStats } from '@/features/reports/api/reports';
 import { earlyWarningApi, EarlyWarningFlag } from '../api/early-warning';
 
+import { PageSkeleton } from '@/components/layout/PageSkeleton';
+
 export function AnalyticsPage() {
   const toast = useToast();
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -34,12 +36,7 @@ export function AnalyticsPage() {
   }, [toast]);
 
   if (isLoading) {
-    return (
-      <div style={{ padding: 'var(--space-6)', maxWidth: 1200, margin: '0 auto', textAlign: 'center', color: 'var(--color-neutral-500)' }}>
-        <div style={{ width: 40, height: 40, border: '4px solid #e2e8f0', borderTopColor: 'var(--color-primary-600)', borderRadius: '50%', margin: '4rem auto 1rem', animation: 'spin 1s linear infinite' }} />
-        <p>Loading school analytics...</p>
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   const studentCount = stats?.studentCount || 0;

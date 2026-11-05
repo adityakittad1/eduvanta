@@ -52,6 +52,5 @@
 @media (max-width: 768px) {
   .app-content {
     padding: var(--space-4);
-    padding-top: 64px; /* Space for mobile menu toggle */
   }
 }

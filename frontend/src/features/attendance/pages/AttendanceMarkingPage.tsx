@@ -113,7 +113,7 @@ export function AttendanceMarkingPage() {
       <div style={{ background: 'var(--color-neutral-0)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-6)', border: '1px solid var(--color-neutral-200)', boxShadow: 'var(--shadow-sm)' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 'var(--font-bold)', color: 'var(--color-neutral-900)', marginBottom: 'var(--space-6)' }}>Daily Attendance</h1>
         
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)', alignItems: 'end' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 'var(--space-4)', alignItems: 'end' }}>
           <Select 
             label="Select Class" 
             value={selectedClassId} 
@@ -144,20 +144,20 @@ export function AttendanceMarkingPage() {
       ) : (
         <div style={{ background: 'var(--color-neutral-0)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-neutral-200)', overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
           
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--space-4) var(--space-6)', borderBottom: '1px solid var(--color-neutral-200)', background: 'var(--color-neutral-50)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--space-3)', padding: 'var(--space-4) var(--space-6)', borderBottom: '1px solid var(--color-neutral-200)', background: 'var(--color-neutral-50)' }}>
             <div style={{ display: 'flex', gap: 'var(--space-4)', fontSize: 'var(--text-sm)' }}>
               <span style={{ fontWeight: 'var(--font-medium)' }}>Total: {stats.total}</span>
               <span style={{ color: 'var(--color-success-600)', fontWeight: 'var(--font-semibold)' }}>Present: {stats.present}</span>
               <span style={{ color: 'var(--color-danger-600)', fontWeight: 'var(--font-semibold)' }}>Absent: {stats.absent}</span>
             </div>
-            <div style={{ display: 'flex', gap: 'var(--space-3)' }}>
+            <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
               <Button size="sm" variant="ghost" onClick={() => markAll('PRESENT')}>Mark All Present</Button>
               <Button size="sm" variant="ghost" onClick={() => markAll('ABSENT')}>Mark All Absent</Button>
             </div>
           </div>
 
           <div style={{ padding: 'var(--space-4) var(--space-6)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--space-4)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 'var(--space-3)' }}>
               {students.map(student => {
                 const isPresent = attendanceState[student.id] === 'PRESENT';
                 return (
@@ -168,12 +168,15 @@ export function AttendanceMarkingPage() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      padding: 'var(--space-3) var(--space-4)',
+                      padding: '12px 16px',
+                      minHeight: 52,
+                      userSelect: 'none',
                       borderRadius: 'var(--radius-md)',
                       border: `1px solid ${isPresent ? 'var(--color-success-200)' : 'var(--color-danger-200)'}`,
                       background: isPresent ? 'var(--color-success-50)' : 'var(--color-danger-50)',
                       cursor: 'pointer',
-                      transition: 'all 0.15s ease'
+                      transition: 'transform 0.12s ease, background 0.15s ease',
+                      boxShadow: 'var(--shadow-xs)'
                     }}
                   >
                     <div>

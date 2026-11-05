@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertTriangle, TrendingDown, RefreshCw, ChevronRight, UserX } from 'lucide-react';
-import { Button, Badge, useToast } from '@/components/ui';
+import { Button, Badge, TableSkeleton, useToast } from '@/components/ui';
 import { earlyWarningApi, EarlyWarningFlag } from '../api/early-warning';
 
 export function EarlyWarningPage() {
@@ -17,7 +17,7 @@ export function EarlyWarningPage() {
       setIsLoading(true);
       const data = await earlyWarningApi.getFlags();
       setFlags(data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load early warning flags');
     } finally {
       setIsLoading(false);
@@ -45,96 +45,114 @@ export function EarlyWarningPage() {
     switch (flag.flagType) {
       case 'LOW_ATTENDANCE':
         return {
-          icon: <UserX size={16} className="text-danger-500" />,
+          icon: <UserX size={14} />,
           title: 'Low Attendance',
-          description: `Attendance is at ${flag.details.actual}%, below the minimum ${flag.details.threshold}% threshold.`,
+          description: `Attendance is at ${flag.details?.actual || 0}%, below minimum ${flag.details?.threshold || 75}% threshold.`,
           color: 'danger' as const
         };
       case 'LOW_ACADEMIC_PERFORMANCE':
         return {
-          icon: <TrendingDown size={16} className="text-warning-500" />,
+          icon: <TrendingDown size={14} />,
           title: 'Low Academic Performance',
-          description: `Average marks are at ${flag.details.actual}%, below the minimum ${flag.details.threshold}% threshold.`,
+          description: `Score average is at ${flag.details?.actual || 0}%, below minimum ${flag.details?.threshold || 40}% threshold.`,
           color: 'warning' as const
         };
       default:
         return {
-          icon: <AlertTriangle size={16} className="text-neutral-500" />,
+          icon: <AlertTriangle size={14} />,
           title: flag.flagType.replace(/_/g, ' '),
-          description: 'Requires attention based on recent data.',
+          description: (flag.details as any)?.reason || 'Requires academic or attendance intervention.',
           color: 'neutral' as const
         };
     }
   };
 
-  if (isLoading) return <div style={{ padding: 'var(--space-6)' }}>Loading...</div>;
-
   return (
-    <div style={{ padding: 'var(--space-6)', maxWidth: 1000, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 'var(--font-bold)', color: 'var(--color-neutral-900)' }}>Early Warning System</h1>
-          <p style={{ color: 'var(--color-neutral-500)', marginTop: 'var(--space-1)' }}>Automatically identifies students requiring academic or attendance intervention.</p>
+          <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 700, color: 'var(--color-neutral-900)' }}>
+            Early Warning System
+          </h1>
+          <p style={{ color: 'var(--color-neutral-500)', fontSize: 'var(--text-sm)', marginTop: 2 }}>
+            Automated monitoring identifies at-risk students requiring academic or attendance intervention ({flags.length} active alerts)
+          </p>
         </div>
         <Button onClick={handleRunEvaluation} disabled={isEvaluating} variant="primary">
-          <RefreshCw size={16} className={isEvaluating ? 'spin' : ''} />
-          {isEvaluating ? 'Evaluating...' : 'Run Evaluation'}
+          <RefreshCw size={15} className={isEvaluating ? 'spin' : ''} />
+          {isEvaluating ? 'Evaluating...' : 'Run Analysis'}
         </Button>
       </div>
 
-      <div style={{ background: 'var(--color-neutral-0)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-neutral-200)', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead>
-            <tr style={{ background: 'var(--color-neutral-50)', borderBottom: '1px solid var(--color-neutral-200)' }}>
-              <th style={{ padding: 'var(--space-3) var(--space-4)', fontWeight: 'var(--font-medium)', color: 'var(--color-neutral-600)' }}>Student</th>
-              <th style={{ padding: 'var(--space-3) var(--space-4)', fontWeight: 'var(--font-medium)', color: 'var(--color-neutral-600)' }}>Class</th>
-              <th style={{ padding: 'var(--space-3) var(--space-4)', fontWeight: 'var(--font-medium)', color: 'var(--color-neutral-600)' }}>Warning Type</th>
-              <th style={{ padding: 'var(--space-3) var(--space-4)', fontWeight: 'var(--font-medium)', color: 'var(--color-neutral-600)' }}>Details</th>
-              <th style={{ padding: 'var(--space-3) var(--space-4)', fontWeight: 'var(--font-medium)', color: 'var(--color-neutral-600)', width: 40 }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {flags.length === 0 ? (
+      <div className="table-container">
+        {isLoading ? (
+          <div style={{ padding: 'var(--space-4)' }}>
+            <TableSkeleton rows={5} cols={4} />
+          </div>
+        ) : (
+          <table className="table">
+            <thead>
               <tr>
-                <td colSpan={5} style={{ padding: 'var(--space-12)', textAlign: 'center', color: 'var(--color-neutral-500)' }}>
-                  <AlertTriangle size={32} style={{ margin: '0 auto var(--space-4)', color: 'var(--color-neutral-300)' }} />
-                  <p>No students are currently flagged by the Early Warning System.</p>
-                </td>
+                <th className="table-th">Student</th>
+                <th className="table-th">Class</th>
+                <th className="table-th">Alert Category</th>
+                <th className="table-th">Intervention Diagnostic</th>
+                <th className="table-th text-right" style={{ width: 60 }}>Action</th>
               </tr>
-            ) : (
-              flags.map(flag => {
-                const info = getFlagDetails(flag);
-                const student = flag.student!;
-                return (
-                  <tr key={flag.id} style={{ borderBottom: '1px solid var(--color-neutral-100)', transition: 'background 0.2s', cursor: 'pointer' }} onClick={() => navigate(`/erp/students/${student.id}`)} onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-neutral-50)'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-                    <td style={{ padding: 'var(--space-4)' }}>
-                      <div style={{ fontWeight: 'var(--font-medium)', color: 'var(--color-neutral-900)' }}>{student.firstName} {student.lastName}</div>
-                      <div style={{ fontSize: 'var(--text-sm)', color: 'var(--color-neutral-500)' }}>{student.admissionNumber}</div>
-                    </td>
-                    <td style={{ padding: 'var(--space-4)', color: 'var(--color-neutral-700)' }}>
-                      {student.class ? `${student.class.name} ${student.class.division || ''}` : 'Unassigned'}
-                    </td>
-                    <td style={{ padding: 'var(--space-4)' }}>
-                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--space-1)' }}>
+            </thead>
+            <tbody>
+              {flags.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="table-empty">
+                    <AlertTriangle size={36} style={{ margin: '0 auto var(--space-3)', color: 'var(--color-neutral-300)' }} />
+                    <p style={{ fontWeight: 500 }}>No students currently flagged by the Early Warning System.</p>
+                  </td>
+                </tr>
+              ) : (
+                flags.map(flag => {
+                  const info = getFlagDetails(flag);
+                  const student = flag.student;
+                  return (
+                    <tr 
+                      key={flag.id} 
+                      className="table-tr table-tr-clickable"
+                      onClick={() => student && navigate(`/erp/students/${student.id}`)}
+                    >
+                      <td className="table-td">
+                        <div style={{ fontWeight: 600, color: 'var(--color-neutral-900)' }}>
+                          {student ? `${student.firstName} ${student.lastName}` : 'Unknown Student'}
+                        </div>
+                        <div style={{ fontSize: 'var(--text-xs)', fontFamily: 'var(--font-family-mono)', color: 'var(--color-neutral-400)' }}>
+                          {student?.admissionNumber || '-'}
+                        </div>
+                      </td>
+                      <td className="table-td" style={{ color: 'var(--color-neutral-700)', fontSize: 'var(--text-xs)' }}>
+                        {student?.class ? `${student.class.name} ${student.class.division || ''}` : 'Unassigned'}
+                      </td>
+                      <td className="table-td">
                         <Badge variant={info.color}>
                           {info.icon}
                           {info.title}
                         </Badge>
-                      </div>
-                    </td>
-                    <td style={{ padding: 'var(--space-4)', color: 'var(--color-neutral-600)', fontSize: 'var(--text-sm)' }}>
-                      {info.description}
-                    </td>
-                    <td style={{ padding: 'var(--space-4)' }}>
-                      <ChevronRight size={16} className="text-neutral-400" />
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                      </td>
+                      <td className="table-td" style={{ color: 'var(--color-neutral-600)', fontSize: 'var(--text-xs)' }}>
+                        {info.description}
+                      </td>
+                      <td className="table-td text-right">
+                        <Button variant="ghost" size="sm">
+                          <ChevronRight size={15} />
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
 }
+
+export default EarlyWarningPage;

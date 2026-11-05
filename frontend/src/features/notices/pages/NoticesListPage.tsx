@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Bell, Plus } from 'lucide-react';
-import { Button, Badge, Modal, Input, Select, useToast } from '@/components/ui';
+import { Bell, Plus, Calendar, User } from 'lucide-react';
+import { Button, Badge, Modal, Input, Select, EmptyState, useToast } from '@/components/ui';
 import { noticesApi, Notice } from '../api/notices';
 import { classesApi, Class } from '../../classes/api/classes';
 import { useAuth } from '@/store/AuthContext';
@@ -23,7 +23,7 @@ export function NoticesListPage() {
       setIsLoading(true);
       const data = await noticesApi.getNotices();
       setNotices(data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load notices');
     } finally {
       setIsLoading(false);
@@ -33,7 +33,7 @@ export function NoticesListPage() {
   useEffect(() => {
     fetchData();
     if (canCreate) {
-      classesApi.getClasses().then(setClasses).catch(console.error);
+      classesApi.getClasses().then(setClasses).catch(() => {});
     }
   }, [canCreate]);
 
@@ -42,117 +42,153 @@ export function NoticesListPage() {
     const formData = new FormData(e.currentTarget);
     try {
       await noticesApi.createNotice({
-        title: formData.get('title') as string,
-        content: formData.get('content') as string,
+        title: (formData.get('title') as string)?.trim(),
+        content: (formData.get('content') as string)?.trim(),
         targetAudience: audience,
         targetClassId: audience === 'CLASS' ? (formData.get('targetClassId') as string) : undefined,
         visibility,
       });
-      toast.success('Notice published successfully!');
+      toast.success('Notice published successfully');
       setIsModalOpen(false);
-      setVisibility('INTERNAL'); // reset
+      setVisibility('INTERNAL');
       fetchData();
     } catch (error: any) {
       toast.error(error.message || 'Failed to create notice');
     }
   };
 
-  if (isLoading) return <div style={{ padding: 'var(--space-6)' }}>Loading...</div>;
-
   return (
-    <div style={{ padding: 'var(--space-6)', maxWidth: 1000, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', width: '100%' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-4)' }}>
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 'var(--font-bold)', color: 'var(--color-neutral-900)' }}>
-            Notice Board
+          <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 700, color: 'var(--color-neutral-900)' }}>
+            Notice Board & Announcements
           </h1>
-          <p style={{ color: 'var(--color-neutral-500)', marginTop: 'var(--space-1)' }}>
-            Announcements, alerts, and school updates.
+          <p style={{ color: 'var(--color-neutral-500)', fontSize: 'var(--text-sm)', marginTop: 2 }}>
+            Official school circulars, academic alerts, and community updates ({notices.length} notices)
           </p>
         </div>
         {canCreate && (
           <Button onClick={() => setIsModalOpen(true)} variant="primary">
-            <Plus size={16} /> New Notice
+            <Plus size={16} /> Post Notice
           </Button>
         )}
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-        {notices.length === 0 ? (
-          <div style={{ padding: 'var(--space-12)', textAlign: 'center', background: 'var(--color-neutral-0)', borderRadius: 'var(--radius-lg)', border: '1px dashed var(--color-neutral-300)' }}>
-            <p style={{ color: 'var(--color-neutral-500)' }}>No notices to display.</p>
-          </div>
-        ) : (
-          notices.map(notice => (
-            <div key={notice.id} style={{ background: 'var(--color-neutral-0)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--color-neutral-200)', padding: 'var(--space-5)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-3)' }}>
+      {isLoading ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="skeleton" style={{ height: 110, borderRadius: 'var(--radius-lg)' }} />
+          ))}
+        </div>
+      ) : notices.length === 0 ? (
+        <EmptyState
+          icon={<Bell size={48} />}
+          title="No notices published yet"
+          description="When faculty or administrators publish school announcements, they will appear here."
+          action={canCreate ? { label: "Post First Notice", onClick: () => setIsModalOpen(true) } : undefined}
+        />
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          {notices.map(notice => (
+            <div 
+              key={notice.id} 
+              style={{ 
+                background: 'var(--color-neutral-0)', 
+                borderRadius: 'var(--radius-xl)', 
+                border: '1px solid var(--color-neutral-200)', 
+                padding: 'var(--space-5)',
+                boxShadow: 'var(--shadow-xs)',
+                transition: 'border-color var(--transition-fast), box-shadow var(--transition-fast)'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-3)', marginBottom: 'var(--space-3)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-                  <div style={{ padding: 'var(--space-2)', background: 'var(--color-info-50)', color: 'var(--color-info-600)', borderRadius: 'var(--radius-full)' }}>
-                    <Bell size={20} />
+                  <div style={{ padding: 'var(--space-2)', background: 'var(--color-primary-50)', color: 'var(--color-primary-600)', borderRadius: 'var(--radius-full)' }}>
+                    <Bell size={18} />
                   </div>
                   <div>
-                    <h3 style={{ fontSize: '1.125rem', fontWeight: 'var(--font-semibold)', color: 'var(--color-neutral-900)' }}>
+                    <h3 style={{ fontSize: 'var(--text-base)', fontWeight: 600, color: 'var(--color-neutral-900)' }}>
                       {notice.title}
                     </h3>
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-neutral-500)', marginTop: '4px' }}>
-                      {new Date(notice.createdAt).toLocaleString()} &bull; By {notice.createdBy.email.split('@')[0]}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', fontSize: 'var(--text-xs)', color: 'var(--color-neutral-400)', marginTop: 2, flexWrap: 'wrap' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Calendar size={13} /> {new Date(notice.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                      <span>&bull;</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <User size={13} /> {notice.createdBy.email.split('@')[0]}
+                      </span>
                     </div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
                   <Badge variant="neutral">
-                    {notice.targetAudience === 'ALL' && 'All'}
-                    {notice.targetAudience === 'TEACHERS' && 'Teachers Only'}
+                    {notice.targetAudience === 'ALL' && 'Entire School'}
+                    {notice.targetAudience === 'TEACHERS' && 'Staff Only'}
                     {notice.targetAudience === 'STUDENTS' && 'Students Only'}
-                    {notice.targetAudience === 'CLASS' && `Class ${notice.targetClass?.name} ${notice.targetClass?.division || ''}`}
+                    {notice.targetAudience === 'CLASS' && `Class ${notice.targetClass?.name || ''} ${notice.targetClass?.division || ''}`}
                   </Badge>
                   {notice.visibility === 'PUBLIC' && (
-                    <Badge variant="success">🌐 Public</Badge>
+                    <Badge variant="success">Public Web</Badge>
                   )}
                 </div>
               </div>
 
-              <div style={{ color: 'var(--color-neutral-700)', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
+              <div style={{ color: 'var(--color-neutral-700)', fontSize: 'var(--text-sm)', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
                 {notice.content}
               </div>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Publish Notice">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Publish School Notice">
         <form onSubmit={handleCreateNotice} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          <Input label="Notice Title" name="title" required placeholder="e.g. Tomorrow is a Holiday" />
+          <Input label="Notice Title" name="title" required placeholder="e.g. Mid-Term Examination Schedule & Guidelines" />
           
           <div>
-            <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 'var(--font-medium)', color: 'var(--color-neutral-700)', marginBottom: 'var(--space-1)' }}>
-              Content
+            <label style={{ display: 'block', fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--color-neutral-700)', marginBottom: 'var(--space-1)' }}>
+              Announcement Details
             </label>
             <textarea 
               name="content" 
               required 
-              style={{ width: '100%', padding: 'var(--space-2)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-neutral-300)', minHeight: 120 }}
-            ></textarea>
+              rows={4}
+              placeholder="Provide complete notice details, dates, and instructions..."
+              style={{ 
+                width: '100%', 
+                padding: 'var(--space-3)', 
+                borderRadius: 'var(--radius-md)', 
+                border: '1px solid var(--color-neutral-300)', 
+                fontFamily: 'var(--font-family-base)',
+                fontSize: 'var(--text-sm)',
+                outline: 'none',
+                resize: 'vertical'
+              }}
+            />
           </div>
           
-          <Select label="Target Audience" value={audience} onChange={(e: any) => setAudience(e.target.value)} required>
-            <option value="ALL">Entire School</option>
-            <option value="STUDENTS">All Students</option>
-            <option value="TEACHERS">All Teachers</option>
-            <option value="CLASS">Specific Class</option>
-          </Select>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)' }}>
+            <Select label="Target Audience" value={audience} onChange={(e: any) => setAudience(e.target.value)} required>
+              <option value="ALL">Entire Campus (All)</option>
+              <option value="STUDENTS">Students & Parents Only</option>
+              <option value="TEACHERS">Faculty & Staff Only</option>
+              <option value="CLASS">Specific Class / Section</option>
+            </Select>
+
+            <Select label="Broadcast Scope" value={visibility} onChange={(e: any) => setVisibility(e.target.value)} required>
+              <option value="INTERNAL">Internal ERP Only</option>
+              <option value="PUBLIC">Public (Include on Public School Website)</option>
+            </Select>
+          </div>
 
           {audience === 'CLASS' && (
-            <Select label="Select Class" name="targetClassId" required>
-              <option value="">Select...</option>
+            <Select label="Select Target Class" name="targetClassId" required>
+              <option value="">Select class division...</option>
               {classes.map(c => <option key={c.id} value={c.id}>{c.name} {c.division || ''}</option>)}
             </Select>
           )}
-
-          <Select label="Visibility" value={visibility} onChange={(e: any) => setVisibility(e.target.value)} required>
-            <option value="INTERNAL">Internal Only (ERP users)</option>
-            <option value="PUBLIC">Public (Also show on school website)</option>
-          </Select>
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)', marginTop: 'var(--space-4)' }}>
             <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
@@ -163,3 +199,5 @@ export function NoticesListPage() {
     </div>
   );
 }
+
+export default NoticesListPage;

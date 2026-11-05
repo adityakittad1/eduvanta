@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BarChart3, Users, BookOpen, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/components/ui';
+import { PageSkeleton } from '@/components/layout/PageSkeleton';
 import { reportsApi, DashboardStats } from '../api/reports';
 
 export function ReportsPage() {
@@ -22,7 +23,7 @@ export function ReportsPage() {
     fetchStats();
   }, [toast]);
 
-  if (isLoading || !stats) return <div style={{ padding: 'var(--space-6)' }}>Loading...</div>;
+  if (isLoading || !stats) return <PageSkeleton />;
 
   return (
     <div style={{ padding: 'var(--space-6)', maxWidth: 1200, margin: '0 auto' }}>
