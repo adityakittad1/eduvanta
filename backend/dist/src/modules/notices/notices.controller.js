@@ -4,6 +4,7 @@ exports.deleteNotice = exports.createNotice = exports.getNotices = void 0;
 const prisma_1 = require("../../lib/prisma");
 const supabase_1 = require("../../lib/supabase");
 const authDb_1 = require("../../lib/authDb");
+const dataDb_1 = require("../../lib/dataDb");
 const errorHandler_1 = require("../../middleware/errorHandler");
 async function getNotices(req, res, next) {
     try {
@@ -117,7 +118,9 @@ async function createNotice(req, res, next) {
         }
         // Fallback via Supabase
         if (supabase_1.supabase) {
+            const noticeId = (0, dataDb_1.generateCuid)();
             const { data: newNotice, error } = await supabase_1.supabase.from('notices').insert({
+                id: noticeId,
                 school_id: schoolId,
                 title: data.title,
                 content: data.content,

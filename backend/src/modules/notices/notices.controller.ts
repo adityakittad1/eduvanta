@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../../lib/prisma';
 import { supabase } from '../../lib/supabase';
 import { isPrismaAvailable, markPrismaFailure } from '../../lib/authDb';
+import { generateCuid } from '../../lib/dataDb';
 import { AppError } from '../../middleware/errorHandler';
 
 export async function getNotices(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -122,7 +123,9 @@ export async function createNotice(req: Request, res: Response, next: NextFuncti
 
     // Fallback via Supabase
     if (supabase) {
+      const noticeId = generateCuid();
       const { data: newNotice, error } = await supabase.from('notices').insert({
+        id: noticeId,
         school_id: schoolId,
         title: data.title,
         content: data.content,
