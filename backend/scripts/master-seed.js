@@ -123,10 +123,7 @@ async function runMasterSeed() {
     return;
   }
 
-  const otherSchools = schools.filter(s => s.id !== elloraSchool.id && (
-    s.slug.includes('pune') || s.slug.includes('nashik') || s.slug.includes('ahilyanagar') ||
-    s.slug.includes('kolhapur') || s.slug.includes('gangapur')
-  ));
+  const otherSchools = schools.filter(s => s.id !== elloraSchool.id);
 
   console.log(`Primary Demo School: ${elloraSchool.name} (${elloraSchool.slug})`);
   console.log(`Other Demo Schools (${otherSchools.length}): ${otherSchools.map(s => s.name).join(', ')}\n`);
