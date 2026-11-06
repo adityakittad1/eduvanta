@@ -46,7 +46,7 @@ export async function generateQuiz(req: Request, res: Response, next: NextFuncti
     const schoolId = req.tenant?.id;
     if (!schoolId) throw new AppError('No tenant context', 400, 'BAD_REQUEST');
 
-    const teacherId = req.user?.teacherId || req.user?.id;
+    const teacherId = req.user?.id;
     if (!teacherId) throw new AppError('Only teachers or principals can generate quizzes', 403, 'FORBIDDEN');
 
     const body: GenerateQuizFromBankInput = req.body;
@@ -60,3 +60,4 @@ export async function generateQuiz(req: Request, res: Response, next: NextFuncti
     next(error);
   }
 }
+

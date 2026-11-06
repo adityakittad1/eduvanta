@@ -36,7 +36,7 @@ export function errorHandler(
 ): void {
   // Zod validation errors
   if (err instanceof ZodError) {
-    const fieldErrors = err.flatten().fieldErrors;
+    const fieldErrors = err.flatten().fieldErrors as Record<string, string[]>;
     const firstErrorMessage = Object.entries(fieldErrors)
       .map(([field, msgs]) => `${field}: ${(msgs || []).join(', ')}`)
       .join('; ');
