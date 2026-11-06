@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, Plus, Calendar, User } from 'lucide-react';
+import { Bell, Plus, Calendar, User, Trash2 } from 'lucide-react';
 import { Button, Badge, Modal, Input, Select, EmptyState, useToast } from '@/components/ui';
 import { noticesApi, Notice } from '../api/notices';
 import { classesApi, Class } from '../../classes/api/classes';
@@ -17,6 +17,7 @@ export function NoticesListPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [audience, setAudience] = useState<'ALL'|'TEACHERS'|'STUDENTS'|'CLASS'>('ALL');
   const [visibility, setVisibility] = useState<'INTERNAL'|'PUBLIC'>('INTERNAL');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchData = async () => {
     try {
@@ -37,15 +38,46 @@ export function NoticesListPage() {
     }
   }, [canCreate]);
 
+  const handleDeleteNotice = async (id: string, title: string) => {
+    if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
+    try {
+      setDeletingId(id);
+      await noticesApi.deleteNotice(id);
+      toast.success('Notice deleted successfully');
+      setNotices(prev => prev.filter(n => n.id !== id));
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete notice');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const handleCreateNotice = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    const title = (formData.get('title') as string)?.trim();
+    const content = (formData.get('content') as string)?.trim();
+    const targetClassId = audience === 'CLASS' ? (formData.get('targetClassId') as string) : undefined;
+
+    if (!title) {
+      toast.error('Notice title is required');
+      return;
+    }
+    if (!content) {
+      toast.error('Notice announcement details are required');
+      return;
+    }
+    if (audience === 'CLASS' && !targetClassId) {
+      toast.error('Please select a target class for class-specific notice');
+      return;
+    }
+
     try {
       await noticesApi.createNotice({
-        title: (formData.get('title') as string)?.trim(),
-        content: (formData.get('content') as string)?.trim(),
+        title,
+        content,
         targetAudience: audience,
-        targetClassId: audience === 'CLASS' ? (formData.get('targetClassId') as string) : undefined,
+        targetClassId,
         visibility,
       });
       toast.success('Notice published successfully');
@@ -131,6 +163,30 @@ export function NoticesListPage() {
                   </Badge>
                   {notice.visibility === 'PUBLIC' && (
                     <Badge variant="success">Public Web</Badge>
+                  )}
+                  {canCreate && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteNotice(notice.id, notice.title)}
+                      disabled={deletingId === notice.id}
+                      title="Delete Notice"
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--color-neutral-400)',
+                        cursor: deletingId === notice.id ? 'not-allowed' : 'pointer',
+                        padding: '4px 6px',
+                        borderRadius: 'var(--radius-sm)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'color var(--transition-fast), background var(--transition-fast)',
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-danger-600)'; e.currentTarget.style.background = 'var(--color-danger-50)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-neutral-400)'; e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      <Trash2 size={15} />
+                    </button>
                   )}
                 </div>
               </div>

@@ -1,0 +1,1 @@
+import{b as s}from"./index-Cr5970JO.js";const n={getAll:async a=>{const{data:t}=await s.get("/users",{params:a});return t},create:async a=>{const{data:t}=await s.post("/users",a);return t.data},update:async(a,t)=>{const{data:r}=await s.put(`/users/${a}`,t);return r.data}};export{n as u};

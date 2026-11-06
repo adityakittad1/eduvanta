@@ -100,16 +100,31 @@ api.interceptors.response.use(
 );
 
 export async function uploadFile(file: File): Promise<string> {
-  const formData = new FormData();
-  formData.append('file', file);
-  
-  const { data } = await api.post('/upload', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-  
-  return data.data.url;
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // Do NOT manually specify 'Content-Type': 'multipart/form-data' without boundary;
+    // let browser / Axios generate the boundary header automatically.
+    const { data } = await api.post('/upload', formData, {
+      headers: {
+        'Content-Type': undefined,
+      },
+    });
+    
+    return data.data.url;
+  } catch (err) {
+    // If upload API fails or storage bucket is unreachable, convert image to data URL
+    if (file.type.startsWith('image/')) {
+      return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(err);
+        reader.readAsDataURL(file);
+      });
+    }
+    throw err;
+  }
 }
 
 export default api;

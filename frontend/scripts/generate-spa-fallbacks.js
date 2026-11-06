@@ -14,12 +14,21 @@ if (!fs.existsSync(indexPath)) {
 const indexContent = fs.readFileSync(indexPath, 'utf-8');
 
 const knownSchoolSlugs = [
-  'rajmata-jijau-kolhapur',
-  'sant-tukaram-vidyalaya',
-  'savitribai-phule-madhyamik',
-  'shivaji-maharaj-vidyalaya',
-  'zp-school-gangapur',
   'ellora-highschool',
+  'gptps-gangapur',
+  'zp-school-gangapur',
+  'shivaji-maharaj-pune',
+  'shivaji-maharaj-vidyalaya',
+  'savitribai-phule-nashik',
+  'savitribai-phule-madhyamik',
+  'sant-tukaram-ahilyanagar',
+  'sant-tukaram-vidyalaya',
+  'rajmata-jijau-kolhapur',
+  'cse',
+  'cse-1',
+  'cse-2',
+  'zpps-trimalpur-gangapur',
+  'zpps-trimalpur-gangapur-1',
   'zp-school-wardha',
 ];
 

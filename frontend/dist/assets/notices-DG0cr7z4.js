@@ -1,0 +1,1 @@
+import{b as a}from"./index-Cr5970JO.js";const o={getNotices:async()=>{const{data:t}=await a.get("/notices");return t.data},createNotice:async t=>{const{data:e}=await a.post("/notices",t);return e.data},deleteNotice:async t=>{await a.delete(`/notices/${t}`)}};export{o as n};

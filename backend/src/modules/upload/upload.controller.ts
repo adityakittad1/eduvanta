@@ -72,7 +72,7 @@ export async function handleUpload(req: Request, res: Response, next: NextFuncti
       }
 
       // If Supabase storage is unavailable or bucket not permitted, provide safe data URL fallback for images
-      if (file.mimetype.startsWith('image/') && fileBuffer.length <= 10 * 1024 * 1024) {
+      if (file.mimetype.startsWith('image/') && fileBuffer.length > 0 && fileBuffer.length <= 10 * 1024 * 1024) {
         if (file.path && fs.existsSync(file.path)) {
           try { fs.unlinkSync(file.path); } catch {}
         }
@@ -93,7 +93,24 @@ export async function handleUpload(req: Request, res: Response, next: NextFuncti
         return;
       }
 
-      throw new AppError('Failed to upload file: ' + uploadRes.error.message, 500, 'INTERNAL_ERROR');
+      // If storage failed, provide fallback
+      if (file.mimetype.startsWith('image/') && fileBuffer.length > 0) {
+        const base64 = fileBuffer.toString('base64');
+        res.status(201).json({
+          success: true,
+          data: {
+            url: `data:${file.mimetype};base64,${base64}`,
+            filename,
+            originalName: file.originalname,
+            size: file.size,
+            mimetype: file.mimetype,
+            provider: 'data-url'
+          }
+        });
+        return;
+      }
+
+      throw new AppError('Failed to upload file: ' + (uploadRes?.error?.message || 'Storage error'), 500, 'INTERNAL_ERROR');
     }
 
     // Fallback: Local Storage (For Dev only)

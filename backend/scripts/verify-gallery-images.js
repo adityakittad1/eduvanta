@@ -1,0 +1,384 @@
+const fs = require('fs');
+const path = require('path');
+
+// 40 carefully selected, high-resolution Unsplash photos covering Indian and educational school activities
+const candidateImages = [
+  // ── 1. SPORTS (Kabaddi, Cricket, Track Athletics, Football, Team Sports) ──
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896851231?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=800&q=80',
+    title: 'Annual Inter-House Cricket Championship',
+    description: 'Students demonstrating teamwork and tactical batting skills during the annual inter-house cricket tournament on the school grounds.',
+    category: 'SPORTS',
+    theme: 'Sports & Achievements'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896852465?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=800&q=80',
+    title: 'Inter-School Football Cup Final',
+    description: 'Junior high school football team competing enthusiastically in the taluka level championship tournament.',
+    category: 'SPORTS',
+    theme: 'Sports & Achievements'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896853699?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80',
+    title: '100m Sprint & Track Athletics Meet',
+    description: 'Student athletes giving their personal best at the starting line during the 100-meter dash in the annual athletics meet.',
+    category: 'SPORTS',
+    theme: 'Sports & Achievements'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896854933?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1587280501635-68a0e82cd5ff?auto=format&fit=crop&w=800&q=80',
+    title: 'Volleyball Team Coaching Session',
+    description: 'Physical education teachers conducting tactical drills and serving practice on the campus outdoor volleyball court.',
+    category: 'SPORTS',
+    theme: 'Sports & Achievements'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896856167?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&w=800&q=80',
+    title: 'Relay Race Baton Exchange Final',
+    description: 'Precision 4x100m relay baton exchange executed cleanly by Ellora senior house sprinters.',
+    category: 'SPORTS',
+    theme: 'Sports & Achievements'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896857401?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80',
+    title: 'Morning Yoga and Physical Fitness Drill',
+    description: 'Whole-school collective morning yoga and Surya Namaskar session to promote physical vitality and mental concentration.',
+    category: 'SPORTS',
+    theme: 'Sports & Achievements'
+  },
+
+  // ── 2. EDUCATIONAL (Science Exhibition, STEM, Smart Learning, Biology Lab) ──
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896858635?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=800&q=80',
+    title: 'Chemistry Laboratory Titration Experiment',
+    description: 'Secondary science students conducting chemical titration and pH experiments with precision glassware under faculty supervision.',
+    category: 'EDUCATIONAL',
+    theme: 'Science & Innovation'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896859869?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80',
+    title: 'Interactive Smart Classroom E-Learning Session',
+    description: 'Interactive smart board session demonstrating mathematics concepts with vernacular audio-visual software.',
+    category: 'EDUCATIONAL',
+    theme: 'Smart Learning'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896861103?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=800&q=80',
+    title: 'Robotics & STEM Circuit Prototyping',
+    description: 'Students assembling renewable solar and robotics circuits during the weekly Atal Tinkering innovation lab hours.',
+    category: 'EDUCATIONAL',
+    theme: 'Science & Innovation'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896862337?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80',
+    title: 'Collaborative Classroom Mathematics Group Study',
+    description: 'Students engaged in peer discussion solving algebraic theorem problems under the guidance of our senior math teacher.',
+    category: 'EDUCATIONAL',
+    theme: 'Smart Learning'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896863571?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=800&q=80',
+    title: 'Science Fair Working Model Showcase',
+    description: 'Class 9 students exhibiting their rainwater harvesting and drip irrigation prototype at the annual district science exhibition.',
+    category: 'EDUCATIONAL',
+    theme: 'Science & Innovation'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896864805?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=800&q=80',
+    title: 'English Language Listening & Phonetics Lab',
+    description: 'Students practicing vernacular pronunciation and listening comprehension in our audio-assisted digital language session.',
+    category: 'EDUCATIONAL',
+    theme: 'Smart Learning'
+  },
+
+  // ── 3. INFRASTRUCTURE (Computer Lab, Library, Science Lab, Dining Hall, Campus) ──
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896866039?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=800&q=80',
+    title: 'Central Library & Reading Hall',
+    description: 'Spacious school library housing over 3,500 reference volumes, science journals, and state board curriculum textbooks.',
+    category: 'INFRASTRUCTURE',
+    theme: 'Library & Reading'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896867273?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1564981797816-1043664bf78d?auto=format&fit=crop&w=800&q=80',
+    title: 'Modern High-Speed Computer Laboratory',
+    description: 'Fully equipped 40-workstation computer laboratory providing digital literacy, coding, and typing education.',
+    category: 'INFRASTRUCTURE',
+    theme: 'Computer Education'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896868507?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=800&q=80',
+    title: 'Ellora High School Main Academic Block',
+    description: 'Architectural front facade of ZP Ellora High School featuring airy corridors, landscaped lawns, and solar installations.',
+    category: 'INFRASTRUCTURE',
+    theme: 'School Facilities'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896869741?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=800&q=80',
+    title: 'Biology Microscope Research Workstations',
+    description: 'Advanced compound microscopes set up for plant cell and tissue slide examinations in the senior life sciences laboratory.',
+    category: 'INFRASTRUCTURE',
+    theme: 'School Facilities'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896870975?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1588075592446-265fd1e6e76f?auto=format&fit=crop&w=800&q=80',
+    title: 'Nutritious Mid-Day Meal Dining Hall',
+    description: 'Hygienic, well-ventilated dining facility providing balanced, nutritious mid-day meals daily to all registered students.',
+    category: 'INFRASTRUCTURE',
+    theme: 'School Facilities'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896872209?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=800&q=80',
+    title: 'Digital Reference Books & Study Archive',
+    description: 'Dedicated reference section where students research supplementary educational material and competitive exam guides.',
+    category: 'INFRASTRUCTURE',
+    theme: 'Library & Reading'
+  },
+
+  // ── 4. ACTIVITIES (Tree Plantation, Environmental Club, Cleanliness Drive) ──
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896873443?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=800&q=80',
+    title: 'Vrukshadindi Annual Tree Plantation Campaign',
+    description: 'Eco-club students planting native saplings and fruit-bearing trees along the campus boundary for environmental conservation.',
+    category: 'ACTIVITIES',
+    theme: 'Campus & Environment'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896874677?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&w=800&q=80',
+    title: 'Campus Herbal Garden & Botanical Study',
+    description: 'Students identifying and cataloging medicinal plants including Tulsi, Neem, and Aloe Vera in the school botanical garden.',
+    category: 'ACTIVITIES',
+    theme: 'Campus & Environment'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896875911?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?auto=format&fit=crop&w=800&q=80',
+    title: 'Outdoor Botany & Nature Observation Class',
+    description: 'Biology teacher taking students outdoors for live pollination and leaf chlorophyll observation under natural sunlight.',
+    category: 'ACTIVITIES',
+    theme: 'Campus & Environment'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896877145?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=800&q=80',
+    title: 'Swachh Campus Cleanliness Drive',
+    description: 'Voluntary student committee participating in the weekly school cleanliness and plastic-free campus pledge.',
+    category: 'ACTIVITIES',
+    theme: 'Campus & Environment'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896878379?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=800&q=80',
+    title: 'Solar Energy & Water Conservation Workshop',
+    description: 'Students learning practical applications of rainwater harvesting and solar panels installed on the school rooftop.',
+    category: 'ACTIVITIES',
+    theme: 'Campus & Environment'
+  },
+
+  // ── 5. CULTURAL (Traditional Dance, Lezim, Theatre, Art Exhibition) ──
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896879613?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
+    title: 'Maharashtra Folk Dance & Lezim Presentation',
+    description: 'Vibrant cultural performance by school dance troupe during the annual cultural gathering celebration.',
+    category: 'CULTURAL',
+    theme: 'Cultural Activities'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896880847?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1469488865564-c2de10f69f96?auto=format&fit=crop&w=800&q=80',
+    title: 'Marathi Bhasha Gaurav Din Celebration',
+    description: 'Students reciting classical poetry and presenting dramatic monologues honoring Maharashtra literary heritage.',
+    category: 'CULTURAL',
+    theme: 'Cultural Activities'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896882081?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80',
+    title: 'School Choir & Classical Music Concert',
+    description: 'Choral performance of patriotic songs and classical ragas accompanied by harmonium and tabla by students.',
+    category: 'CULTURAL',
+    theme: 'Cultural Activities'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896883315?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&w=800&q=80',
+    title: 'Annual Student Fine Arts & Rangoli Exhibition',
+    description: 'Exhibition of watercolor paintings, warli art sketches, and decorative rangoli created by junior artists.',
+    category: 'CULTURAL',
+    theme: 'Cultural Activities'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896884549?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=800&q=80',
+    title: 'Street Play on Road Safety & Social Awareness',
+    description: 'Drama club students staging an impactful street play in Khuldabad village square spreading social awareness.',
+    category: 'CULTURAL',
+    theme: 'Cultural Activities'
+  },
+
+  // ── 6. ACHIEVEMENTS (Awards, Trophies, Merit Felicitation, Medals) ──
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896885783?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1578269174936-2709b6aeb913?auto=format&fit=crop&w=800&q=80',
+    title: 'State Mathematics Olympiad Gold Medalist Felicitation',
+    description: 'Principal Mrs. Sangita Shinde presenting gold medal and certificate to Class 10 state merit rank holder.',
+    category: 'ACHIEVEMENTS',
+    theme: 'Awards & Recognition'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896887017?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?auto=format&fit=crop&w=800&q=80',
+    title: 'Zilla Parishad Overall Best School Championship Trophy',
+    description: 'School leadership proudly hoisting the rolling district sports and academic excellence trophy awarded by the education department.',
+    category: 'ACHIEVEMENTS',
+    theme: 'Awards & Recognition'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896888251?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1531545514256-b1400bc00f31?auto=format&fit=crop&w=800&q=80',
+    title: 'National Scholarship Exam Rankers Felicitation',
+    description: 'Honoring scholarship exam awardees who secured government talent search endowments for higher secondary studies.',
+    category: 'ACHIEVEMENTS',
+    theme: 'Awards & Recognition'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896889485?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80',
+    title: 'Inspire Award National Science Grant Winners',
+    description: 'Student researchers felicitated after being selected for central government DST INSPIRE science prototype grants.',
+    category: 'ACHIEVEMENTS',
+    theme: 'Awards & Recognition'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896890719?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1576267423445-b2e0074d68a4?auto=format&fit=crop&w=800&q=80',
+    title: 'Inter-School Kabaddi Champions Trophy',
+    description: 'Ellora Highschool under-17 girls Kabaddi team posing victoriously with their divisional championship shield.',
+    category: 'ACHIEVEMENTS',
+    theme: 'Awards & Recognition'
+  },
+
+  // ── 7. EVENTS (Republic Day, Independence Day, Teachers Day, Annual Day) ──
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896891953?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1532375810709-75b1da00537c?auto=format&fit=crop&w=800&q=80',
+    title: '77th Republic Day Flag Hoisting Ceremony',
+    description: 'Solemn national tricolor unfurling ceremony attended by over 1,000 students, faculty, and village elders on the campus ground.',
+    category: 'EVENTS',
+    theme: 'National Celebrations'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896893187?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=800&q=80',
+    title: 'Independence Day Parade & March Past',
+    description: 'Student scouts and guides contingent executing disciplined synchronized march past during August 15 celebrations.',
+    category: 'EVENTS',
+    theme: 'National Celebrations'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896894421?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&w=800&q=80',
+    title: 'Dr. Radhakrishnan Teachers Day Felicitation',
+    description: 'Students expressing heartfelt gratitude to all 100 teaching faculty members on September 5th with bouquets and cultural skits.',
+    category: 'EVENTS',
+    theme: 'School Events'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896895655?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?auto=format&fit=crop&w=800&q=80',
+    title: 'Annual Social Gathering Grand Inauguration',
+    description: 'Traditional lamp lighting ceremony inaugurating the three-day annual festival of sports, drama, and academic exhibitions.',
+    category: 'EVENTS',
+    theme: 'School Events'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896896889?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&w=800&q=80',
+    title: 'Parent-Teacher Collaborative Conference (PTA)',
+    description: 'Annual parent-teacher convention discussing student academic early warning reports and holistic rural education milestones.',
+    category: 'EVENTS',
+    theme: 'School Events'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896898123?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=800&q=80',
+    title: 'Alumni Mentorship & Career Guidance Summit',
+    description: 'Distinguished former students returning to mentor high school seniors on engineering, medical, and civil services pathways.',
+    category: 'EVENTS',
+    theme: 'School Events'
+  },
+  {
+    originalUrl: 'https://images.unsplash.com/photo-1577896899357?auto=format&fit=crop&w=800&q=80',
+    replacementUrl: 'https://images.unsplash.com/photo-1498243691581-b145c3f54a5a?auto=format&fit=crop&w=800&q=80',
+    title: 'National Science Day Science Quiz Grand Finale',
+    description: 'High-stakes inter-school buzzer quiz competition commemorating Sir C.V. Raman discovered Raman Effect on February 28th.',
+    category: 'EVENTS',
+    theme: 'School Events'
+  }
+];
+
+const targetDir = path.resolve(__dirname, 'gallery-downloads');
+if (!fs.existsSync(targetDir)) {
+  fs.mkdirSync(targetDir, { recursive: true });
+}
+
+async function verifyAndDownloadAll() {
+  console.log(`Starting verification and download of ${candidateImages.length} images...`);
+  const verifiedResults = [];
+
+  for (let i = 0; i < candidateImages.length; i++) {
+    const item = candidateImages[i];
+    const filename = `gallery-img-${String(i + 1).padStart(2, '0')}.jpg`;
+    const localPath = path.join(targetDir, filename);
+
+    try {
+      const res = await fetch(item.replacementUrl);
+      if (!res.ok) {
+        console.error(`[FAIL] Image ${i + 1} (${item.title}): HTTP ${res.status}`);
+        verifiedResults.push({ ...item, ok: false, status: res.status });
+        continue;
+      }
+      const buffer = Buffer.from(await res.arrayBuffer());
+      if (buffer.length < 5000) {
+        console.error(`[FAIL] Image ${i + 1} (${item.title}): Buffer too small (${buffer.length} bytes)`);
+        verifiedResults.push({ ...item, ok: false, size: buffer.length });
+        continue;
+      }
+      fs.writeFileSync(localPath, buffer);
+      console.log(`[PASS] Image ${i + 1}/${candidateImages.length}: ${item.title} (${Math.round(buffer.length / 1024)} KB) -> ${item.category}`);
+      verifiedResults.push({ ...item, ok: true, size: buffer.length, localFile: filename });
+    } catch (err) {
+      console.error(`[ERR] Image ${i + 1} error:`, err.message);
+      verifiedResults.push({ ...item, ok: false, error: err.message });
+    }
+  }
+
+  const passCount = verifiedResults.filter(r => r.ok).length;
+  console.log(`\n===========================================`);
+  console.log(`Total: ${verifiedResults.length} | Succeeded: ${passCount} | Failed: ${verifiedResults.length - passCount}`);
+  console.log(`===========================================`);
+  fs.writeFileSync('backend/scripts/verified-gallery-data.json', JSON.stringify(verifiedResults, null, 2));
+}
+
+verifyAndDownloadAll();

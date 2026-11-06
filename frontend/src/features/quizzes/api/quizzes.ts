@@ -66,5 +66,52 @@ export const quizzesApi = {
   submitQuiz: async (quizId: string, answers: { questionId: string; selectedOption: 'A' | 'B' | 'C' | 'D' }[]) => {
     const { data } = await api.post<{ success: boolean; data: QuizAttempt }>(`/quizzes/${quizId}/submit`, { answers });
     return data.data;
-  }
+  },
+
+  // ─── Question Bank ─────────────────────────────────────────────
+  getQuestionBank: async (filters: {
+    classNum?: number;
+    subject?: string;
+    topic?: string;
+    difficulty?: string;
+    questionType?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    const { data } = await api.get<{
+      success: boolean;
+      data: any[];
+      pagination: { page: number; limit: number; total: number; totalPages: number };
+    }>('/question-bank', { params: filters });
+    return data;
+  },
+
+  getQuestionBankCoverage: async () => {
+    const { data } = await api.get<{ success: boolean; data: any[] }>('/question-bank/coverage');
+    return data.data;
+  },
+
+  generateQuizFromBank: async (payload: {
+    title: string;
+    topic?: string;
+    classId: string;
+    subjectId: string;
+    mode: 'BALANCED' | 'AUTO' | 'MANUAL';
+    totalQuestions?: number;
+    difficultyDistribution?: { easy?: number; medium?: number; hard?: number };
+    questionIds?: string[];
+    classNum?: number;
+    subject?: string;
+  }) => {
+    const { data } = await api.post<{
+      success: boolean;
+      data: {
+        quiz: Quiz;
+        totalQuestions: number;
+        questions: any[];
+      };
+    }>('/question-bank/generate-quiz', payload);
+    return data.data;
+  },
 };

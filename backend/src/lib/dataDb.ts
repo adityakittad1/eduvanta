@@ -779,9 +779,34 @@ export async function dbGetClassById(id: string, schoolId: string): Promise<any 
           .eq('class_id', id)
           .order('first_name', { ascending: true });
 
+        const { data: classSubjects } = await supabase
+          .from('subjects')
+          .select('*')
+          .eq('class_id', id)
+          .eq('is_active', true)
+          .order('name', { ascending: true });
+
+        let resolvedSubjects = classSubjects;
+        if (!resolvedSubjects || resolvedSubjects.length === 0) {
+          const { data: schoolSubjects } = await supabase
+            .from('subjects')
+            .select('*')
+            .eq('school_id', schoolId)
+            .eq('is_active', true)
+            .order('name', { ascending: true });
+          resolvedSubjects = schoolSubjects;
+        }
+
         const mappedClass = mapClass(data);
         mappedClass.students = (students || []).map(mapStudent);
-        mappedClass.subjects = [];
+        mappedClass.subjects = (resolvedSubjects || []).map((s: any) => ({
+          id: s.id,
+          schoolId: s.school_id,
+          classId: s.class_id,
+          name: s.name,
+          code: s.code,
+          isActive: s.is_active,
+        }));
         return mappedClass;
       }
     } catch (err: any) {

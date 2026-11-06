@@ -31,4 +31,8 @@ export const noticesApi = {
     const { data } = await api.post<{ success: boolean; data: Notice }>('/notices', noticeData);
     return data.data;
   },
+
+  deleteNotice: async (id: string): Promise<void> => {
+    await api.delete(`/notices/${id}`);
+  },
 };

@@ -39,6 +39,7 @@ import { aiRouter } from './modules/ai/ai.router';
 import { reportsRouter } from './modules/reports/reports.router';
 import { publicRouter } from './modules/public/public.router';
 import { uploadRouter } from './modules/upload/upload.router';
+import { questionBankRouter } from './modules/question-bank/question-bank.router';
 
 export function createApp(): Application {
   const app = express();
@@ -127,6 +128,7 @@ export function createApp(): Application {
     app.use(`${prefix}/academics`, requireTenant, academicsRouter);
     app.use(`${prefix}/early-warning`, requireTenant, earlyWarningRouter);
     app.use(`${prefix}/quizzes`, requireTenant, quizzesRouter);
+    app.use(`${prefix}/question-bank`, requireTenant, questionBankRouter);
     app.use(`${prefix}/notices`, requireTenant, noticesRouter);
     app.use(`${prefix}/resources`, requireTenant, resourcesRouter);
     app.use(`${prefix}/tc`, requireTenant, tcRouter);

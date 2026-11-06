@@ -11,12 +11,26 @@ import { AppError } from '../../middleware/errorHandler';
 import { logger } from '../../lib/logger';
 
 // Resolve school by slug or id: returns schoolId or throws
+const SLUG_ALIASES: Record<string, string> = {
+  'sant-tukaram-vidyalaya': 'sant-tukaram-ahilyanagar',
+  'zp-school-gangapur': 'gptps-gangapur',
+  'savitribai-phule-madhyamik': 'savitribai-phule-nashik',
+  'shivaji-maharaj-vidyalaya': 'shivaji-maharaj-pune',
+  'sant-tukaram-ahilyanagar': 'sant-tukaram-vidyalaya',
+  'gptps-gangapur': 'zp-school-gangapur',
+  'savitribai-phule-nashik': 'savitribai-phule-madhyamik',
+  'shivaji-maharaj-pune': 'shivaji-maharaj-vidyalaya',
+};
+
 export async function resolvePublicSchool(slug: string) {
+  const targetSlug = slug.trim().toLowerCase();
+  const aliasSlug = SLUG_ALIASES[targetSlug] || targetSlug;
+
   if (isPrismaAvailable()) {
     try {
       const school = await prisma.school.findFirst({
         where: {
-          OR: [{ slug }, { id: slug }],
+          OR: [{ slug: targetSlug }, { slug: aliasSlug }, { id: targetSlug }],
         },
         select: { id: true, isActive: true, isPublicEnabled: true },
       });
@@ -42,7 +56,7 @@ export async function resolvePublicSchool(slug: string) {
       const { data } = await supabase
         .from('schools')
         .select('id, is_active, is_public_enabled')
-        .or(`slug.eq.${slug},id.eq.${slug}`)
+        .or(`slug.eq.${targetSlug},slug.eq.${aliasSlug},id.eq.${targetSlug}`)
         .maybeSingle();
 
       if (data) {

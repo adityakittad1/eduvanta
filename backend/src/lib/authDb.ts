@@ -63,9 +63,18 @@ export interface AuthDbUserProfile {
   } | null;
 }
 
-let prismaDisabledUntil = 0;
+const isServerlessEnv = Boolean(
+  process.env.VERCEL || 
+  process.env.VERCEL_ENV || 
+  process.env.AWS_LAMBDA_FUNCTION_NAME || 
+  process.env.LAMBDA_TASK_ROOT ||
+  process.env.DISABLE_PRISMA === 'true'
+);
+
+let prismaDisabledUntil = isServerlessEnv ? Number.MAX_SAFE_INTEGER : 0;
 
 export function isPrismaAvailable(): boolean {
+  if (isServerlessEnv) return false;
   return Date.now() > prismaDisabledUntil;
 }
 

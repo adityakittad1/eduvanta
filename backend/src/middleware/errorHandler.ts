@@ -36,11 +36,16 @@ export function errorHandler(
 ): void {
   // Zod validation errors
   if (err instanceof ZodError) {
+    const fieldErrors = err.flatten().fieldErrors;
+    const firstErrorMessage = Object.entries(fieldErrors)
+      .map(([field, msgs]) => `${field}: ${(msgs || []).join(', ')}`)
+      .join('; ');
+
     res.status(400).json({
       success: false,
-      message: 'Validation failed',
+      message: firstErrorMessage || 'Validation failed',
       code: 'VALIDATION_ERROR',
-      errors: err.flatten().fieldErrors,
+      errors: fieldErrors,
     });
     return;
   }
